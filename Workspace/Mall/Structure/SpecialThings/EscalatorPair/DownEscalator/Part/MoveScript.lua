@@ -1,0 +1,2 @@
+-- @ScriptType: Script
+script.Parent.AssemblyLinearVelocity = script.Parent.CFrame.LookVector * script.Parent.Parent:GetAttribute("Speed") --Takes the lookvector of the part and multiplies it by the predetermined speed to make the escalator function
