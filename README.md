@@ -1,0 +1,1 @@
+This is a repository for the roblox game An Adventure at the Mall. The game is a roguelite adventure game about conquering scenarios at a mall. Test it out here: https://www.roblox.com/games/98899210633034/An-Adventure-at-the-Mall
