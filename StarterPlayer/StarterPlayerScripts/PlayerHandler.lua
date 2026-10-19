@@ -13,7 +13,7 @@ local FreezePlayer = ReplicatedStorage.Remotes.FreezePlayer
 
 local ObjectiveDisplay = PlayerGui:WaitForChild("ObjectiveDisplay")
 
-local function Freeze(yes)
+local function Freeze(yes) --un/freezes the player
 	if yes then
 		ContextActionService:BindAction(
 			FreezeAction,
@@ -28,7 +28,12 @@ end
 
 UpdateObjective.OnClientEvent:Connect(function(Objective, Number, Completed) --when the objective is updated, displays the info to the player
 	ObjectiveDisplay.Counter.Visible = false
-	ObjectiveDisplay.ObjectiveText.Text = Objective.DisplayInfo
+	
+	if Objective.Modifier then
+		ObjectiveDisplay.ObjectiveText.Text = string.format(Objective.DisplayInfo, Objective[Objective.Modifier])
+	else
+		ObjectiveDisplay.ObjectiveText.Text = Objective.DisplayInfo
+	end
 	
 	if Objective.Quantity and Objective.Quantity > 1 then
 		ObjectiveDisplay.Counter.Text = "("..tostring(Completed).."/"..tostring(Objective.Quantity)..")"
@@ -36,11 +41,11 @@ UpdateObjective.OnClientEvent:Connect(function(Objective, Number, Completed) --w
 	end
 end)
 
-FreezePlayer.OnClientEvent:Connect(function(yes)
+FreezePlayer.OnClientEvent:Connect(function(yes) --un/freezes the player when told to
 	Freeze(yes)
 end)
 
-player:GetAttributeChangedSignal("InDialogue"):Connect(function()
+player:GetAttributeChangedSignal("InDialogue"):Connect(function() --un/freezes the player when their dialogue state changes
 	if player:GetAttribute("InDialogue") then
 		Freeze(true)
 	else
