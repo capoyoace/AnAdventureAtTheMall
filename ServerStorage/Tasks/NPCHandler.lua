@@ -1,7 +1,7 @@
 -- @ScriptType: ModuleScript
 local NPCHandler = {}
 
-local ServerStorage = game:GetService("ServerStorage")
+local ServerStorage = game:GetService("ServerStorage") --TEST THIS STUFF PLEASE IT IS IN DIRE NEED OF TESTING
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local PathfindingService = game:GetService("PathfindingService")
 
@@ -20,12 +20,13 @@ NPCHandler.Talk = function(player : Player, NPC, bondLevel) --Handles talking to
 	if game:GetAttribute("ScenarioStarted") == false then --gets dialogue based on whether or not the scenario has started or not
 		NPCDialogue = require(ReplicatedStorage.NPCDialogue:FindFirstChild(NPCType.."Dialogue")).PreScenario[DialogueBreed]
 	else
+		if bondLevel == "Unbonded" then
+			bondLevel = 0
+			print("Bond level changed for the purpose of the objective.")
+		end
+		
 		if CurrentObjective.Type == "AskAround" then
 			NPCDialogue = require(ReplicatedStorage.NPCDialogue:FindFirstChild(NPCType.."Dialogue"))[RunData.Scenario][DialogueBreed][RunData.Objective][NPC:GetAttribute("InTheKnow")]
-			if bondLevel == "Unbonded" then
-				bondLevel = 0
-				print("Bond level changed for the purpose of the objective.")
-			end
 		else
 			NPCDialogue = require(ReplicatedStorage.NPCDialogue:FindFirstChild(NPCType.."Dialogue"))[RunData.Scenario][DialogueBreed][RunData.Objective]
 		end
@@ -47,7 +48,43 @@ NPCHandler.Talk = function(player : Player, NPC, bondLevel) --Handles talking to
 			DialogueBlock = NPCDialogue.Bonded[bondLevel]
 		end
 	else --these are the settings during the scenario
-		DialogueBlock = NPCDialogue[bondLevel]
+		if CurrentObjective.Type == "CollectItem" then
+			if NPCType ~= "SecurityGuard" then
+				--seems unfinished
+			else
+				DialogueBlock = NPCDialogue
+			end
+		elseif CurrentObjective.Type == "UnlockDoor" and CurrentObjective.KeyLoc == "NPC" then
+			if NPCType ~= "SecurityGuard" then
+				if NPC:HasTag("HasKey") then
+					DialogueBlock = NPCDialogue.HasKey[bondLevel]
+				else
+					DialogueBlock = NPCDialogue.Else[bondLevel]
+				end
+			else
+				DialogueBlock = NPCDialogue
+			end
+		elseif CurrentObjective.Type == "CollectItem" and CurrentObjective.ItemType == "NPC" then
+			if NPCType ~= "SecurityGuard" then
+				if NPC:HasTag(CurrentObjective.Item) then
+					DialogueBlock = NPCDialogue.HasItem[bondLevel]
+				else
+					DialogueBlock = NPCDialogue.Else[bondLevel]
+				end
+			else
+				if NPC:HasTag(CurrentObjective.Item) then
+					DialogueBlock = NPCDialogue.HasItem
+				else
+					DialogueBlock = NPCDialogue.Else
+				end
+			end
+		else
+			if NPCType ~= "SecurityGuard" then
+				DialogueBlock = NPCDialogue[bondLevel]
+			else
+				DialogueBlock = NPCDialogue
+			end
+		end
 	end
 	
 	DialogueUI.Enabled = true --displays dialogue UI
@@ -70,11 +107,26 @@ NPCHandler.Talk = function(player : Player, NPC, bondLevel) --Handles talking to
 			DialogueUI.Responses.Visible = true
 			DialogueUI.NextButton.Visible = false
 			
-			DialogueUI.Speech.Text = DialogueBlock[Current].Speech
+			if DialogueBlock[Current].Modifier then --if there is a string modifier, modifies the speech dialogue accordingly
+				print("modifying string")
+				local Speech = DialogueBlock[Current].Speech
+				Speech = string.format(Speech, CurrentObjective[CurrentObjective.Modifier])
+				DialogueUI.Speech.Text = Speech
+			else
+				DialogueUI.Speech.Text = DialogueBlock[Current].Speech
+			end
 			
 			for i, v in Responses do
 				local ResponseClone = ResponseUI:Clone() --Makes a response button for each response
-				ResponseClone.Text = v
+				
+				local content
+				if DialogueBlock[Current].Modifier then --checks to makes sure the modifier isn't modifying the reseponse, but if it is modifies stuff cause yeah man
+					content = string.format(v, CurrentObjective[CurrentObjective.Modifier])
+				else
+					content = v
+				end
+				
+				ResponseClone.Text = content
 				ResponseClone.Parent = DialogueUI.Responses
 				ResponseClone.Visible = true
 				
@@ -99,8 +151,16 @@ NPCHandler.Talk = function(player : Player, NPC, bondLevel) --Handles talking to
 					Proceed() --advances dialogue
 				end)
 			end
-		elseif DialogueBlock[Current].Type == "Next" then
-			DialogueUI.Speech.Text = DialogueBlock[Current].Speech --simply displays the next speech content if there are no responses available
+		elseif DialogueBlock[Current].Type == "Next" then --simply displays the next speech content if there are no responses available
+			if DialogueBlock[Current].Modifier then --if there is a string modifier, modifies the speech dialogue accordingly
+				print("modifying string")
+				local Speech = DialogueBlock[Current].Speech
+				local Speech = DialogueBlock[Current].Speech
+				Speech = string.format(Speech, CurrentObjective[CurrentObjective.Modifier])
+				DialogueUI.Speech.Text = Speech
+			else
+				DialogueUI.Speech.Text = DialogueBlock[Current].Speech
+			end
 		else
 			local Consequence = DialogueBlock[Current].Consequence --if the dialogue has come to a close, calculates the consequence in relationship from that conversation
 			if game:GetAttribute("ScenarioStarted") == false then --makes sure that the scenario isn't going on before changing bond level; once the scenario starts, you can't bond with NPCs
@@ -114,7 +174,23 @@ NPCHandler.Talk = function(player : Player, NPC, bondLevel) --Handles talking to
 				end
 			end
 			
-			if NPC:GetAttribute("InTheKnow") == "Knowledgable" then --if the player just received objective information lets the handler know
+			if NPC:GetAttribute("InTheKnow") == "Knowledgeable" then --if the player just received objective information lets the handler know
+				print("you found out information!!! Fire!!!")
+				ObjectiveDialogue:Fire(NPC)
+			elseif NPC:HasTag("NPCToFind") then
+				print("you've just received critical information!!! Fire!!!")
+				ObjectiveDialogue:Fire(NPC)
+			elseif NPC:HasTag("HasKey") then
+				if Consequence == 1 then
+					print("you just got the key!!! great job buster!!!")
+					ObjectiveDialogue:Fire(NPC)
+				elseif Consequence == 0 then
+					print("you'll have to try harder than that bucko")
+				else
+					print("looks like you just lost all hope of getting the key. When I'm not lazy I'll kick you from the game.")
+				end
+			elseif CurrentObjective.Item and NPC:HasTag(CurrentObjective.Item) then
+				print("you just got another item!!!")
 				ObjectiveDialogue:Fire(NPC)
 			end
 			
@@ -124,6 +200,7 @@ NPCHandler.Talk = function(player : Player, NPC, bondLevel) --Handles talking to
 			NPC.HumanoidRootPart.Anchored = false
 			connection:Disconnect()
 			NPCRoot:SetNetworkOwner(nil) --double checks that the NPC's network owner is the server not the player
+			Current = 0
 			wait(2)
 			NPC.Torso.ProximityPrompt.Enabled = true
 		end
@@ -165,20 +242,9 @@ NPCHandler.Lounge = function(NPC) --Handles NPC moving around the mall
 			end)
 			
 			if success then
-				for potato, waypoint in pairs(GigaPath:GetWaypoints()) do
-					local part = Instance.new("Part", workspace)
-					part.Name = potato
-					part.Size = Vector3.new(1, 1, 1)
-					part.Transparency = 0.5
-					part.CanCollide = false
-					part.Anchored = true
-					part.Position = waypoint.Position
-				end
-				
-				for potato, waypoint in pairs(GigaPath:GetWaypoints()) do
+				for _, waypoint in pairs(GigaPath:GetWaypoints()) do
 					Humanoid:MoveTo(waypoint.Position)
 					Humanoid.MoveToFinished:Wait()
-					workspace:FindFirstChild(potato):Destroy()
 					if NPC:GetAttribute("InDialogue") == true then --checks if the NPC is in dialogue or not
 						while NPC:GetAttribute("InDialogue") == true do
 							task.wait()
