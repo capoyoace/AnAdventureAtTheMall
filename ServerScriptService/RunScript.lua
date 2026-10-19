@@ -70,6 +70,7 @@ local function StartPrepPhase()
 	_G.PlayersData.RunInformation.Objective = 1
 	game:SetAttribute("ScenarioStarted", true)
 	print("objective started")
+	ScenarioModule.Trigger(workspace.Mall)
 	ObjectiveModule.StartObjective(1, ScenarioModule.ObjectivesList[1]) --kicks off the scenario
 end
 
@@ -104,24 +105,43 @@ Players.PlayerAdded:Connect(function(player)
 	end
 end)
 
-CompleteObjective.Event:Connect(function(Number)
-	if Number == _G.PlayersData.RunInformation.Objective then
+CompleteObjective.Event:Connect(function(Number) --handles when objectives are completed
+	if Number == _G.PlayersData.RunInformation.Objective then --checks if the players have completed all objectives; if they haven't proceeds to next objective, otherwise tells them they won
 		_G.PlayersData.RunInformation.Objective += 1
 		if _G.PlayersData.RunInformation.Objective <= #ScenarioModule.ObjectivesList then
 			ObjectiveModule.StartObjective(_G.PlayersData.RunInformation.Objective, ScenarioModule.ObjectivesList[_G.PlayersData.RunInformation.Objective])
 		else
-			print("Congradulations, you have won!!")
+			print("Congratulations, you have won!!")
 			TeleportService:TeleportAsync(107103583701575, Players:GetPlayers())
 		end
 	end
 end)
 
-for i, v in pairs(CollectionService:GetTagged("Elevator")) do
+for i, v in pairs(CollectionService:GetTagged("Elevator")) do --handles elevator movement
 	v.Up.ClickDetector.MouseClick:Connect(function(player)
 		player.Character.HumanoidRootPart.CFrame = player.Character.HumanoidRootPart.CFrame * CFrame.new(0, v:GetAttribute("TPDiff"), 0)
 	end)
 	
 	v.Down.ClickDetector.MouseClick:Connect(function(player)
 		player.Character.HumanoidRootPart.CFrame = player.Character.HumanoidRootPart.CFrame * CFrame.new(0, -v:GetAttribute("TPDiff"), 0)
+	end)
+end
+
+for i, v in pairs(CollectionService:GetTagged("LockedDoor")) do --handles locked doors
+	v.ProximityPrompt.Triggered:Connect(function()
+		local player = Players:GetPlayers()[1]
+		if player:GetAttribute("Key") == v:GetAttribute("Key") then --if the player has the key destroys the door cause why not
+			local sound = script.Sound:Clone()
+			sound.Parent = v
+			v.CanCollide = false
+			v.Transparency = 1
+			sound:Play()
+			sound.Ended:Wait()
+			v:Destroy()
+		else --if they don't laughs at them
+			print("You don't have the key, sorry buddy :(")
+			local sound = v.Sound
+			sound:Play()
+		end
 	end)
 end
