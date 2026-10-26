@@ -50,6 +50,7 @@ local function Preload()
 		
 		chosen.Parent = TheMall.Shops
 		chosen:PivotTo(v.CFrame)
+		chosen.Name = TemplateTable[chance].Name
 		v:Destroy()
 		table.remove(TemplateTable, chance) --removes the shop from the shops table to ensure that it only appears once
 		
@@ -74,6 +75,50 @@ local function StartPrepPhase()
 	ObjectiveModule.StartObjective(1, ScenarioModule.ObjectivesList[1]) --kicks off the scenario
 end
 
+local function ForceShops(RequiredShopList) --if the scenario requires some shops to spawn with a guarantee, spawns those shops in place of currently spawned ones
+	local SpawnedShops = TheMall.Shops:GetChildren()
+	if TheMall.Shops:FindFirstChild("ShopLocation") then --buffers until all shops have been spawned in the prep phase (if necessary)
+		while task.wait(0.5) do
+			if not TheMall.Shops:FindFirstChild("ShopLocation") then
+				SpawnedShops = TheMall.Shops:GetChildren()
+				break
+			end
+		end
+	end
+	
+	local function doThis(RandomShopToDestroy, i, v) --a function to replace an existing shop with a required one
+		local newShop = ServerStorage.Shops:FindFirstChild(v..RandomShopToDestroy:GetAttribute("Size")):Clone()
+		newShop:PivotTo(RandomShopToDestroy.PrimaryPart.CFrame)
+		RandomShopToDestroy:Destroy()
+		table.remove(SpawnedShops, i)
+	end
+	
+	for i, v in RequiredShopList do
+		local found = false
+		for j, k in SpawnedShops do
+			if k.Name:find(v) then
+				found = true
+				break
+			end
+		end
+		
+		if not found then --checks whether or not the shop actually exists
+			local RandomShopToDestroy = SpawnedShops[math.random(1, #SpawnedShops)] --grabs random spawned shop
+			if not table.find(RequiredShopList, v) then --makes sure the shop chosen isn't a required one
+				doThis(RandomShopToDestroy, i, v)
+			else
+				while true do --chooses a shop that isn't required (if necessary)
+					RandomShopToDestroy = SpawnedShops[math.random(1, #SpawnedShops)]
+					if not table.find(RequiredShopList, v) then
+						break
+					end
+					doThis(RandomShopToDestroy, i, v)
+				end
+			end
+		end
+	end
+end
+
 Preload()
 
 Players.PlayerAdded:Connect(function(player)
@@ -88,6 +133,12 @@ Players.PlayerAdded:Connect(function(player)
 		ScenarioModule = require(Scenarios:FindFirstChild(scenario))
 		PartySize = partySize
 		
+		if ScenarioModule.RequiredShops then
+			task.spawn(function()
+				ForceShops(ScenarioModule.RequiredShops)
+			end)
+		end
+		
 		_G.PlayersData.RunInformation.Scenario = scenario
 	end
 	
@@ -95,6 +146,7 @@ Players.PlayerAdded:Connect(function(player)
 	_G.PlayersData.Data[player.Name] = PlayerDataTemplate
 	
 	player:SetAttribute("InDialogue", false)
+	player:SetAttribute("Zone", "")
 	
 	--here we'll load in the player's class and starting items and such
 	print(_G.PlayersData)
@@ -130,11 +182,12 @@ end
 for i, v in pairs(CollectionService:GetTagged("LockedDoor")) do --handles locked doors
 	v.ProximityPrompt.Triggered:Connect(function()
 		local player = Players:GetPlayers()[1]
-		if player:GetAttribute("Key") == v:GetAttribute("Key") then --if the player has the key destroys the door cause why not
+		if player:GetAttribute("Key") == v:GetAttribute("Key") or player:GetAttribute("Key") == "MasterKey" then --if the player has the specific key or the master key destroys the door cause why not
 			local sound = script.Sound:Clone()
 			sound.Parent = v
 			v.CanCollide = false
 			v.Transparency = 1
+			v.SurfaceGui.Enabled = false
 			sound:Play()
 			sound.Ended:Wait()
 			v:Destroy()
@@ -144,4 +197,35 @@ for i, v in pairs(CollectionService:GetTagged("LockedDoor")) do --handles locked
 			sound:Play()
 		end
 	end)
+end
+
+for i, v in pairs(TheMall.Shops:GetChildren()) do --handles area zones
+	for j, k in pairs(v:GetChildren()) do
+		if k.Name == "AreaZone" then
+			task.spawn(function()
+				local LastCheckedPlayers = {}
+				
+				while task.wait(0.5) do --checks for players in the shop and updates their zone accordingly
+					local parts = workspace:GetPartsInPart(k)
+					local PossiblePlayers = {}
+
+					for _, part in parts do --gets players from parts in the part, making sure not to duplicate them if they are already in the table
+						local player = Players:GetPlayerFromCharacter(part.Parent)
+						if player and not table.find(PossiblePlayers, player) then
+							table.insert(PossiblePlayers, player)
+							player:SetAttribute("Zone", v.Name)
+						end
+					end
+
+					for _, player in LastCheckedPlayers do --checks if any player has left, updating their zone if so
+						if not table.find(PossiblePlayers, player) then
+							player:SetAttribute("Zone", "")
+						end
+					end
+
+					LastCheckedPlayers = PossiblePlayers
+				end
+			end)
+		end
+	end
 end
