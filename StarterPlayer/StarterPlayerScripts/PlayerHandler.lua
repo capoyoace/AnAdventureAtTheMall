@@ -3,6 +3,7 @@ local player = game.Players.LocalPlayer
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ContextActionService = game:GetService("ContextActionService")
+local InputService = game:GetService("UserInputService")
 
 local FreezeAction = "Freeze"
 
@@ -50,5 +51,17 @@ player:GetAttributeChangedSignal("InDialogue"):Connect(function() --un/freezes t
 		Freeze(true)
 	else
 		Freeze(false)
+	end
+end)
+
+InputService.InputBegan:Connect(function(input)
+	if input.KeyCode == Enum.KeyCode.LeftShift or input.KeyCode == Enum.KeyCode.LeftControl then
+		player.Character.Humanoid.WalkSpeed = 100
+	end
+end)
+
+InputService.InputEnded:Connect(function(input)
+	if input.KeyCode == Enum.KeyCode.LeftShift or input.KeyCode == Enum.KeyCode.LeftControl then
+		player.Character.Humanoid.WalkSpeed = 30
 	end
 end)
