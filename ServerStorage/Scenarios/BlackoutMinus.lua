@@ -15,7 +15,7 @@ BlackoutMinus.ObjectivesList = { --List of scenario objectives
 		[4] = {Loc = CFrame.new(14, 9, 393) * CFrame.fromEulerAnglesYXZ(0, math.rad(90), 0), Radius = Vector3.new(18, 16, 10)},
 		[5] = {Loc = CFrame.new(-206, 9, 393) * CFrame.fromEulerAnglesYXZ(0, math.rad(90), 0), Radius = Vector3.new(18, 16, 10)},
 	}},
-	[3] = {Type = "FindNPC", DisplayInfo = "Find a security guard. Ask him what's up with this.", Specifications = {"NPCType", "SecurityGuard"}, loc = ""},
+	[3] = {Type = "FindNPC", DisplayInfo = "Find a security guard. Ask him what's up with this.", Specifications = {"NPCType", "SecurityGuard"}, loc = "", Modifier = "loc"},
 	[4] = {Type = "LocateArea", DisplayInfo = "Locate the backup generator... the guard said it could be at the %s.", Quantity = 1, Modifier = "loc", loc = "", Objects = {}, AreaLocations = {
 		[1] = {}
 	}},
@@ -23,7 +23,12 @@ BlackoutMinus.ObjectivesList = { --List of scenario objectives
 	[6] = {Type = "ActivateItem", DisplayInfo = "Trigger the backup generator.", Quantity = 1, Objects = {}},
 	[7] = {Type = "CollectItem", DisplayInfo = "Ask around to see if anyone has any %ss they'd be willing to spare.", Quantity = 3, Modifier = "Item", Item = "", ItemType = "NPC"},
 	[8] = {Type = "ActivateItem", DisplayInfo = "Install the %ss and trigger the backup generator.", Quantity = 4, Modifier = "Item", Item = "", Objects = {}},
-	[9] = {Type = "ActivateItem", DisplayInfo = "There's more generators??? Well, at least you know where they are... activate them.", Quantity = math.random(3, 5), Objects = {}}
+	[9] = {Type = "FindNPC", DisplayInfo = "Uh... was something supposed to happen? Check with the security guard.", Specifications = {"NPCType", "SecurityGuard"}},
+	[10] = {Type = "UnlockDoor", DisplayInfo = "Check each shop drawer for the master key... this will probably take a while.", Quantity = 1, Key = "MasterKey", KeyLoc = "Pickup"},
+	[11] = {Type = "CollectItem", DisplayInfo = "Alright... now it's time to scrounge around for some extra %ss. The guard said they'd be anywhere from in between the stairs to up on the roof. Find them.", Quantity = 0, Modifier = "Item", Item = "", ItemType = "Pickup", Objects = {
+		
+	}},
+	[12] = {Type = "ActivateItem", DisplayInfo = "Finally! Now all we have to do is activate the rest of the generators!!!", Quantity = 0, Objects = {}}
 }
 
 BlackoutMinus.ObjectiveInformation = {
@@ -44,26 +49,51 @@ BlackoutMinus.Setup = function(Mall)
 	local NPCFolder = Mall.NPCs
 	
 	local PossibleGeneratorLocs = {}
+	local PossibleCollectLocs = {}
+	local PossibleKeyLocs = {}
 	
 	for i, v in pairs(CollectionService:GetTagged("PossibleLocation")) do --gets the possible generator locations
 		if v.Name == "PossibleGeneratorLocation" then
 			table.insert(PossibleGeneratorLocs, v)
+		elseif v.Name == "PossibleCollectItem" then
+			if not v:IsDescendantOf(game:GetService("ServerStorage")) then
+				table.insert(PossibleCollectLocs, v)
+			end
+		elseif v.Name == "PossibleKeyLocation" then
+			if not v:IsDescendantOf(game:GetService("ServerStorage")) then
+				table.insert(PossibleKeyLocs, v)
+			end
 		end
 	end
 	
-	for i = 1, BlackoutMinus.ObjectivesList[9].Quantity + 1, 1 do --for each generator required (generated randomly above), adds a generator at one of the possible locations
+	local totalGenerators = math.random(3, 5)
+	BlackoutMinus.ObjectivesList[11].Quantity = totalGenerators * 3
+	BlackoutMinus.ObjectivesList[12].Quantity = totalGenerators + totalGenerators * 3
+	
+	for i = 1, totalGenerators + 1, 1 do --for each generator required (generated randomly above), adds a generator at one of the possible locations
 		local randomNum = math.random(1, #PossibleGeneratorLocs) --gets random location, adds a generator, moves it there, and destroys the already used location
 		local index = math.random(1, randomNum)
 		local randomLoc = PossibleGeneratorLocs[index]
-		local newGenerator = script.Generator:Clone()
+		local newGenerator = script.ScenarioObjects.Generator:Clone()
 		newGenerator.Parent = ScenarioFolder.Objectives
 		newGenerator:PivotTo(randomLoc.CFrame)
 		newGenerator:SetAttribute("loc", randomLoc:GetAttribute("loc"))
 		table.remove(PossibleGeneratorLocs, index)
 		
 		if #BlackoutMinus.ObjectivesList[6].Objects > 0 then --checks if there has already been a first generator assinged; if so, adds it to the other generators, and if not makes it the first generator
-			table.insert(BlackoutMinus.ObjectivesList[9].Objects, newGenerator)
-			newGenerator:SetAttribute("ObjectiveNumber", 9)
+			table.insert(BlackoutMinus.ObjectivesList[12].Objects, newGenerator)
+			newGenerator:SetAttribute("ObjectiveNumber", 12)
+			
+			newGenerator.Structure.Middle.ProximityPrompt:SetAttribute("Objective", 12)
+			newGenerator.Structure.Middle.ProximityPrompt:SetAttribute("Dependency", newGenerator.Structure.Insertus.ProximityPrompt)
+			newGenerator.Structure.Insertus.ProximityPrompt:SetAttribute("Objective", 12)
+			
+			newGenerator.Structure.Middle.ProximityPrompt.Triggered:Connect(function()
+				newGenerator.Structure.BrokenLight.Lightpart.Material = Enum.Material.Plastic
+				newGenerator.Structure.BrokenLight.Lightpart.PointLight.Enabled = false
+				newGenerator.Structure.FunctionLight.Lightpart.Material = Enum.Material.Neon
+				newGenerator.Structure.FunctionLight.Lightpart.PointLight.Enabled = true
+			end)
 		else
 			print(newGenerator.WorldPivot.Position)
 			local str1 = string.format("%.1f", newGenerator.WorldPivot.Position.X)
@@ -87,10 +117,20 @@ BlackoutMinus.Setup = function(Mall)
 			end
 			
 			newGenerator:SetAttribute("ObjectiveNumber", 6)
+			newGenerator.Structure.Middle.ProximityPrompt:SetAttribute("Objective", 6)
+			newGenerator.Structure.Insertus.ProximityPrompt:SetAttribute("Objective", 8)
 			
-			newGenerator:FindFirstChild("ProximityPrompt", true).Triggered:Connect(function()
+			newGenerator.Structure.Middle.ProximityPrompt.Triggered:Connect(function()
 				if _G.PlayersData.RunInformation.Objective == 6 then
-					newGenerator:SetAttribute("ObjectiveNumber", 8)
+					newGenerator:SetAttribute("ObjectiveNumber", 8) --test this bad boy out dudeeee
+					newGenerator.Structure.Middle.ProximityPrompt:SetAttribute("Objective", 8)
+					newGenerator.Structure.Middle.ProximityPrompt:SetAttribute("Dependency", newGenerator.Structure.Insertus.ProximityPrompt)
+					newGenerator.Structure.Middle.ProximityPrompt:SetAttribute("Uses", 1)
+				elseif _G.PlayersData.RunInformation.Objective == 8 then
+					newGenerator.Structure.BrokenLight.Lightpart.Material = Enum.Material.Plastic
+					newGenerator.Structure.BrokenLight.Lightpart.PointLight.Enabled = false
+					newGenerator.Structure.FunctionLight.Lightpart.Material = Enum.Material.Neon
+					newGenerator.Structure.FunctionLight.Lightpart.PointLight.Enabled = true
 				end
 			end)
 		end
@@ -98,10 +138,38 @@ BlackoutMinus.Setup = function(Mall)
 		randomLoc:Destroy() --destroys this here so that information it possesses can be completely extracted
 	end
 	
+	local randomKeyLoc = PossibleKeyLocs[math.random(1, #PossibleKeyLocs)]
+	local newKey = script.ScenarioObjects.MasterKey:Clone()
+	newKey.Parent = Mall.Scenario.Objectives
+	newKey:PivotTo(randomKeyLoc.CFrame)
+	
 	BlackoutMinus.ObjectivesList[7].Item = BlackoutMinus.RandomItemsThatStartTheGeneratorForSomeReason[math.random(1, #BlackoutMinus.RandomItemsThatStartTheGeneratorForSomeReason)] --grabs a random item from the table
 	BlackoutMinus.ObjectivesList[8].Item = BlackoutMinus.ObjectivesList[7].Item
+	BlackoutMinus.ObjectivesList[11].Item = BlackoutMinus.ObjectivesList[7].Item
 	
-	for i, v in pairs(PossibleGeneratorLocs) do --gets rid of the other location parts so the player doesn't just come across a box and get really confused
+	for i = 1, BlackoutMinus.ObjectivesList[11].Quantity, 1 do
+		local item = BlackoutMinus.ObjectivesList[7].Item
+
+		local randomNum = math.random(1, #PossibleCollectLocs)
+		local randomLoc = PossibleCollectLocs[randomNum]
+		local newItem = script.ScenarioObjects.Items:FindFirstChild(item):Clone()
+		newItem.Parent = ScenarioFolder.Objectives
+		newItem:PivotTo(randomLoc.CFrame)
+		newItem:SetAttribute("ObjectiveNumber", 11)
+		randomLoc:Destroy()
+		table.remove(PossibleCollectLocs, randomNum)
+		table.insert(BlackoutMinus.ObjectivesList[11].Objects, newItem)
+	end
+	
+	for _, v in pairs(PossibleGeneratorLocs) do --gets rid of the other location parts so the player doesn't just come across a box and get really confused
+		v:Destroy()
+	end
+	
+	for _, v in pairs(PossibleCollectLocs) do
+		v:Destroy()
+	end
+	
+	for _, v in pairs(PossibleKeyLocs) do
 		v:Destroy()
 	end
 end
@@ -111,7 +179,7 @@ BlackoutMinus.Trigger = function(Mall)
 		v.SpotLight.Enabled = false
 	end
 	
-	local BlackoutSound = script.BlackoutSound
+	local BlackoutSound = script.ScenarioObjects.BlackoutSound
 	BlackoutSound.Parent = game:GetService("SoundService")
 	BlackoutSound:Play()
 	
