@@ -1,11 +1,14 @@
 -- @ScriptType: ModuleScript
 local NPCHandler = {}
 
-local ServerStorage = game:GetService("ServerStorage") --TEST THIS STUFF PLEASE IT IS IN DIRE NEED OF TESTING
+local ServerStorage = game:GetService("ServerStorage")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local PathfindingService = game:GetService("PathfindingService")
+local ProximityPromptService = game:GetService("ProximityPromptService")
+local Players = game:GetService("Players")
 
 local ObjectiveDialogue = ServerStorage.Events.ObjectiveDialogue
+local MunsterHearing = ReplicatedStorage.Remotes.MunsterHearing
 
 local Response = script.Response
 
@@ -48,13 +51,7 @@ NPCHandler.Talk = function(player : Player, NPC, bondLevel) --Handles talking to
 			DialogueBlock = NPCDialogue.Bonded[bondLevel]
 		end
 	else --these are the settings during the scenario
-		if CurrentObjective.Type == "CollectItem" then
-			if NPCType ~= "SecurityGuard" then
-				--seems unfinished
-			else
-				DialogueBlock = NPCDialogue
-			end
-		elseif CurrentObjective.Type == "UnlockDoor" and CurrentObjective.KeyLoc == "NPC" then
+		if CurrentObjective.Type == "UnlockDoor" and CurrentObjective.KeyLoc == "NPC" then
 			if NPCType ~= "SecurityGuard" then
 				if NPC:HasTag("HasKey") then
 					DialogueBlock = NPCDialogue.HasKey[bondLevel]
@@ -174,24 +171,30 @@ NPCHandler.Talk = function(player : Player, NPC, bondLevel) --Handles talking to
 				end
 			end
 			
-			if NPC:GetAttribute("InTheKnow") == "Knowledgeable" then --if the player just received objective information lets the handler know
-				print("you found out information!!! Fire!!!")
-				ObjectiveDialogue:Fire(NPC)
-			elseif NPC:HasTag("NPCToFind") then
-				print("you've just received critical information!!! Fire!!!")
-				ObjectiveDialogue:Fire(NPC)
-			elseif NPC:HasTag("HasKey") then
-				if Consequence == 1 then
-					print("you just got the key!!! great job buster!!!")
+			if CurrentObjective then
+				if NPC:GetAttribute("InTheKnow") == "Knowledgeable" then --if the player just received objective information lets the handler know
+					print("you found out information!!! Fire!!!")
 					ObjectiveDialogue:Fire(NPC)
-				elseif Consequence == 0 then
-					print("you'll have to try harder than that bucko")
-				else
-					print("looks like you just lost all hope of getting the key. When I'm not lazy I'll kick you from the game.")
+				elseif NPC:HasTag("NPCToFind") then
+					print("you've just received critical information!!! Fire!!!")
+					ObjectiveDialogue:Fire(NPC)
+				elseif NPC:HasTag("HasKey") then
+					if Consequence == 1 then
+						print("you just got the key!!! great job buster!!!")
+						ObjectiveDialogue:Fire(NPC)
+					elseif Consequence == 0 then
+						print("you'll have to try harder than that bucko")
+					else
+						print("looks like you just lost all hope of getting the key. When I'm not lazy I'll kick you from the game.")
+					end
+				elseif CurrentObjective.Item and NPC:HasTag(CurrentObjective.Item) then
+					if Consequence == 1 then
+						print("you just got another item!!!")
+						ObjectiveDialogue:Fire(NPC)
+					else
+						print("try harder man")
+					end
 				end
-			elseif CurrentObjective.Item and NPC:HasTag(CurrentObjective.Item) then
-				print("you just got another item!!!")
-				ObjectiveDialogue:Fire(NPC)
 			end
 			
 			DialogueUI.Enabled = false --disables everything and sets up for the next interaction
@@ -224,6 +227,8 @@ NPCHandler.Lounge = function(NPC) --Handles NPC moving around the mall
 	
 	local GigaPath = PathfindingService:CreatePath({AgentCanJump = false, AgentRadius = 3, Costs = {Up = upCost, Down = downCost}})
 	
+	local shouldStop = false
+	
 	local Humanoid = NPC.Humanoid :: Humanoid
 	
 	local function pickPath() --picks a random path from the paths folder
@@ -241,7 +246,7 @@ NPCHandler.Lounge = function(NPC) --Handles NPC moving around the mall
 				GigaPath:ComputeAsync(Humanoid.RootPart.Position, WayPoint.Position)
 			end)
 			
-			if success then
+			local function continue()
 				for _, waypoint in pairs(GigaPath:GetWaypoints()) do
 					Humanoid:MoveTo(waypoint.Position)
 					Humanoid.MoveToFinished:Wait()
@@ -251,7 +256,15 @@ NPCHandler.Lounge = function(NPC) --Handles NPC moving around the mall
 						end
 						print("you've stopped yapping, congratulations!!!")
 					end
+					
+					if shouldStop then
+						break
+					end
 				end
+			end
+			
+			if success then
+				continue()
 			else
 				warn(Error)
 			end
@@ -260,9 +273,124 @@ NPCHandler.Lounge = function(NPC) --Handles NPC moving around the mall
 		end
 	end
 	
+	GigaPath.Blocked:Connect(function() --when the path is blocked, recomputes it (test this please)
+		warn("Path blocked")
+		shouldStop = true
+		
+		task.wait(0.5)
+		walkPath()
+	end)
+	
 	while true do
 		walkPath()
 	end
+end
+
+NPCHandler.MunsterAI = function(Munster : Model) --handles the munster ai
+	local Mall = workspace.Mall
+	
+	local enraged = false
+	local expired = false
+	
+	Munster.Humanoid.RootPart:SetNetworkOwner(nil) --makes sure the munster isn't super glitchy and stuff
+	
+	local function pickRandomPoint() --finds a random path point
+		local paths = Mall.Paths
+		
+		local randomPathThing = paths["Path"..math.random(1, #paths:GetChildren())]
+		return randomPathThing["Point"..math.random(1, #randomPathThing:GetChildren())].Position
+	end
+	
+	local function moveToPoint() --moves the munster to the random path point
+		local point = pickRandomPoint()
+		
+		local Path = PathfindingService:CreatePath({AgentRadius = 3, AgentCanJump = true})
+		
+		local succes, Failure = pcall(function()
+			Path:ComputeAsync(Munster.Humanoid.RootPart.Position, point)
+		end)
+		
+		if succes then
+			for _, waypoint in Path:GetWaypoints() do
+				if waypoint.Action == Enum.PathWaypointAction.Jump then Munster.Humanoid.Jump = true end
+				
+				Munster.Humanoid:MoveTo(waypoint.Position)
+				Munster.Humanoid.MoveToFinished:Wait()
+				
+				if enraged then --if somebody triggers the munster, stops this loop so it can pursue them
+					break
+				end
+			end
+		else
+			warn(Failure)
+		end
+	end
+	
+	local function lounge()
+		expired = false
+		while task.wait(math.random(5, 10)) do --lets the munster roam freely
+			if enraged then
+				expired = true
+				print("lounge expired")
+				break
+			else
+				moveToPoint()
+			end
+		end
+	end
+	
+	local function pursuePlayer(player, character) --munster relentlessly pursues player
+		enraged = true
+		Munster.Humanoid:MoveTo(Munster.Humanoid.RootPart.Position)
+		
+		while wait(0.1) do
+			Munster.Humanoid:MoveTo(character.Humanoid.RootPart.Position)
+			
+			if player:GetAttribute("Zone") ~= "" then
+				break
+			end
+			
+			if math.abs(Munster.Humanoid.RootPart.Position.Magnitude - character.Humanoid.RootPart.Position.Magnitude) > 30 then
+				break
+			end
+			
+			if character.Humanoid.Health <= 0 then
+				break
+			end
+		end
+		
+		print("player has moved out of range, returning to regular movement pattern")
+		Munster.Humanoid:MoveTo(Munster.Humanoid.RootPart.Position)
+		enraged = false
+		
+		if expired then
+			lounge()
+		end
+	end
+	
+	MunsterHearing.OnServerEvent:Connect(function(player)
+		print("prompt shown")
+			
+		local didHear = math.random(1, 5) --rolls a random number cause the munster's hearing isn't all that good
+		if didHear <= 4 and player:GetAttribute("Zone") == "" then
+			pursuePlayer(player, player.Character)
+		else
+			warn("you're lucky it didn't hear you bucko...")
+		end
+	end)
+	
+	for i, v in pairs(Munster:GetChildren()) do
+		if v:IsA("BasePart") then
+			v.Touched:Connect(function(hit)
+				local player = Players:GetPlayerFromCharacter(hit.Parent)
+				if player then
+					player.Character.Humanoid.Health = 0
+				end
+			end)
+		end
+	end
+	
+	lounge()
 end
 
 return NPCHandler
