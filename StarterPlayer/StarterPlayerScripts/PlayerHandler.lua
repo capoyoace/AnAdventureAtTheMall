@@ -11,6 +11,7 @@ local PlayerGui = player.PlayerGui
 
 local UpdateObjective = ReplicatedStorage.Remotes.UpdateObjective
 local FreezePlayer = ReplicatedStorage.Remotes.FreezePlayer
+local ActivateHiding = ReplicatedStorage.Remotes.ActivateHiding
 
 local ObjectiveDisplay = PlayerGui:WaitForChild("ObjectiveDisplay")
 
@@ -46,6 +47,10 @@ FreezePlayer.OnClientEvent:Connect(function(yes) --un/freezes the player when to
 	Freeze(yes)
 end)
 
+ActivateHiding.OnClientEvent:Connect(function()
+	Freeze(true)
+end)
+
 player:GetAttributeChangedSignal("InDialogue"):Connect(function() --un/freezes the player when their dialogue state changes
 	if player:GetAttribute("InDialogue") then
 		Freeze(true)
@@ -57,6 +62,11 @@ end)
 InputService.InputBegan:Connect(function(input)
 	if input.KeyCode == Enum.KeyCode.LeftShift or input.KeyCode == Enum.KeyCode.LeftControl then
 		player.Character.Humanoid.WalkSpeed = 100
+	elseif input.KeyCode == Enum.KeyCode.Space then
+		if player:GetAttribute("Hiding") then
+			ActivateHiding:FireServer(player:GetAttribute("Hiding"):Get(), false)
+			Freeze(false)
+		end
 	end
 end)
 
