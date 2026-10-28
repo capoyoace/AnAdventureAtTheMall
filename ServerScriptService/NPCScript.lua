@@ -10,10 +10,27 @@ local NPCs = Mall.NPCs
 
 local FreezePlayer = ReplicatedStorage.Remotes.FreezePlayer
 
+local NPCFolder = ServerStorage.NPCs
+
+local ShopperCount = 10
+
 PhysicsService:RegisterCollisionGroup("NPCs") --sets the NPCs so they can't collide with one another
 PhysicsService:CollisionGroupSetCollidable("NPCs", "NPCs", false)
 
--- Dialogue --
+local Shoppers = NPCFolder.Shopper:GetChildren()
+for i = 0, ShopperCount, 1 do --randomly spawns the specified amount of NPCs into the mall
+	local randomIndex = math.random(1, #Shoppers)
+	local randomShopper = Shoppers[randomIndex]
+	
+	local rootPos = Mall.Paths["Path"..math.random(1, #Mall.Paths:GetChildren())]
+	local position = rootPos["Point"..math.random(1, #rootPos:GetChildren())]
+	
+	randomShopper.Parent = NPCs
+	randomShopper:PivotTo(position.CFrame)
+	table.remove(Shoppers, randomIndex)
+end
+
+task.wait(0.5)
 
 for i, v in NPCs:GetChildren() do
 	local NPC = v
