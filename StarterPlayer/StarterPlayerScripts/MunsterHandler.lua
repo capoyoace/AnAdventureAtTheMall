@@ -1,5 +1,5 @@
 -- @ScriptType: LocalScript
-local Munster = workspace:WaitForChild("Munster", 100)
+local Munster = workspace.Mall.Scenario.Enemies:WaitForChild("Munster", 100)
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
