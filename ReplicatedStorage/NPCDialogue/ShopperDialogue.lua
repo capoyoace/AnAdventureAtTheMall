@@ -76,6 +76,68 @@ Dialogue.PreScenario = { --The hierarchy follows this pattern: Dialogue breed ->
 				[2] = {Index = 1, Type = "Close", Consequence = 0},
 			},
 		}
+	},
+	["Shopaholic"] = {
+		Unbonded = {
+			[1] = {Type = "Respond", Speech = "Ohhhh my gosh you are new to the mall right???? I don't recognize you from the 12232 times I've been hereeeee", Respones = {
+				[1] = "Yeah, this is my first time.",
+				[2] = "Why do you speak in such an annoying manner?",
+				[3] = "Wow, you must really love the mall!"
+			}},
+			[2] = {Index = 1, Type = "Next", Speech = "Wellll if you need anythinggg make sure to ask meeee cause I know my way around here okay little guyyyy????"},
+			[3] = {Index = 1, Type = "Next", Speech = "Well bye I gotta go buy some more stuffff"},
+			[4] = {Index = 1, Type = "Close", Consequence = 0},
+			[5] = {Index = 2, Type = "Next", Speech = "Um excuse me? What the heck was that forrr?"},
+			[6] = {Index = 2, Type = "Next", Speech = "You are a very rude little man go away for reallllll"},
+			[7] = {Index = 2, Type = "Close", Consequence = -1},
+			[8] = {Index = 3, Type = "Next", Speech = "Oh my gosh yes gurrrrl!!!! I love this place if I could move in I totally would oh my goshhhhhh"},
+			[9] = {Index = 3, Type = "Next", Speech = "Thank you so much for appreciating what I loveeee slay all day little guyyyyy"},
+			[10] = {Index = 3, Type = "Close", Consequence = 1}
+		},
+		Bonded = {
+			[0] = {
+				[1] = {Type = "Respond", Speech = "Heyyy there little guyyy do you need something???", Responses = {
+					[1] = "What's your favorite store?",
+					[2] = "I really need to find the bathroom!!! I'm already leaking a little bit!!!",
+					[3] = "Not really."
+				}},
+				[2] = {Index = 1, Type = "Next", Speech = "Ohhhh that's a really hard question!!!! I really like them alll because they all have their own little quirks"},
+				[3] = {Index = 1, Type = "Next", Speech = "Thank you sooo much for asking little guy you really made my day ^U^"},
+				[4] = {Index = 1, Type = "Close", Consequence = 1},
+				[5] = {Index = 2, Type = "Next", Speech = "Ummmmm that's a really weird question???? And TMI for reallll"},
+				[6] = {Index = 2, Type = "Close", Consequence = -1},
+				[7] = {Index = 3, Type = "Next", Speech = "Well if you don't pleaseeee don't interrupt me I am very bussyyyyyyy"},
+				[8] = {Index = 3, Type = "Close", Consequence = 0}
+			},
+			[1] = {
+				[1] = {Type = "Respond", Speech = "eeeeeeeeeeeeeeee", Respones = {
+					[1] = "Increase",
+					[2] = "Decrease",
+					[3] = "Neutral"
+				}},
+				[2] = {Index = 1, Type = "Close", Consequence = 1},
+				[3] = {Index = 2, Type = "Close", Consequence = -1},
+				[4] = {Index = 3, Type = "Close", Consequence = 0}
+			},
+			[2] = {
+				[1] = {Type = "Next", Speech = "Ohhh my gosh it's my favorite little guyyyyy awwwww"},
+				[2] = {Type = "Close"}
+			},
+			[-1] = {
+				[1] = {Type = "Respond", Speech = "meanieeeeee", Respones = {
+					[1] = "Increase",
+					[2] = "Decrease",
+					[3] = "Neutral"
+				}},
+				[2] = {Index = 1, Type = "Close", Consequence = 1},
+				[3] = {Index = 2, Type = "Close", Consequence = -1},
+				[4] = {Index = 3, Type = "Close", Consequence = 0}
+			},
+			[-2] = {
+				[1] = {Type = "Next", Speech = "You little meanie get away from meeeeee"},
+				[2] = {Type = "Close"}
+			}
+		}
 	}
 }
 
@@ -106,7 +168,7 @@ Dialogue.BlackoutMinus = { --The hierarchy follows this pattern: Dialogue breed 
 					}},
 					[2] = {Index = 1, Type = "Next", Speech = "I mean maybe... all I heard is that the power went out. Like dead out. Even the emergency lights aren't working."},
 					[3] = {Index = 1, Type = "Next", Speech = "For some reason that shut all of the shops as well... and the exits. We're all stuck in here until somebody breaks us out..."},
-					[4] = {Index = 1, Type = "Close"}
+					[4] = {Index = 1, Type = "Close", Consequence = 1}
 				},
 				[1] = {
 					[1] = {Type = "Next", Speech = "Hey!! I found out what's going on!!"},
@@ -114,12 +176,12 @@ Dialogue.BlackoutMinus = { --The hierarchy follows this pattern: Dialogue breed 
 					[3] = {Type = "Next", Speech = "It apparently died HARD. Not even the emergency lights are working. And worse yet..."},
 					[4] = {Type = "Next", Speech = "The shops and exits have been locked down automatically. We're stuck here unless someone breaks us out."},
 					[5] = {Type = "Next", Speech = "That's what I've heard, at least. Perhaps there's still an exit that is open... might want to look around. I'm gonna go complain to the manager and try to sue."},
-					[6] = {Type = "Close"}
+					[6] = {Type = "Close", Consequence = 1}
 				},
 				[-1] = {
 					[1] = {Type = "Next", Speech = "You look confused as to what's going on. I know what's going on."},
 					[2] = {Type = "Next", Speech = "But why would I ever tell you?? Find someone else to get info from."},
-					[3] = {Type = "Close"}
+					[3] = {Type = "Close", Consequence = -1}
 				}
 			}
 		},
