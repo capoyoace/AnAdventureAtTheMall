@@ -2,7 +2,11 @@
 local ServerStorage = game:GetService("ServerStorage")
 local TeleportService = game:GetService("TeleportService")
 local CollectionService = game:GetService("CollectionService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
+
+local RequestHide = ReplicatedStorage.Remotes.ActivateHiding
+local ActivateHiding = ServerStorage.Events.ActivateHiding
 
 _G.PlayersData = { --sets up the server data
 	RunInformation = {
@@ -35,7 +39,7 @@ local CompleteObjective = ServerStorage.Events.CompleteObjective
 
 local betajoindata = {
 	TeleportData = {
-		Scenario = "BlackoutMinus",
+		Scenario = "MunsterMinus",
 		PartySize = 1
 	}
 }
@@ -229,3 +233,24 @@ for i, v in pairs(TheMall.Shops:GetChildren()) do --handles area zones
 		end
 	end
 end
+
+ActivateHiding.Event:Connect(function()
+	for i, v in pairs(CollectionService:GetTagged("HidingPrompt")) do
+		if not ServerStorage:IsAncestorOf(v) then
+			v.Triggered:Connect(function(player)
+				if not player:GetAttribute("Hiding") then
+					player.Character:PivotTo(v.Parent.CFrame)
+					player:SetAttribute("Hiding", v.Parent)
+					RequestHide:FireClient(player)
+				end
+			end)
+		end
+	end
+end)
+
+RequestHide.OnServerEvent:Connect(function(player, hidingSpot, hidingOption)
+	local character = player.Character
+	
+	character:PivotTo(hidingSpot.CFrame * CFrame.new(0, 5, 0))
+	player:SetAttribute("Hiding", nil)
+end)
