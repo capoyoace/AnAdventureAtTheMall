@@ -3,8 +3,12 @@ local BlackoutMinus = {}
 
 local ServerStorage = game:GetService("ServerStorage")
 local CollectionService = game:GetService("CollectionService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
 
 local ObjectiveHandler = require(ServerStorage.Tasks.ObjectiveHandler)
+
+local CutsceneManager = ServerStorage.Events.CutsceneManager
 
 BlackoutMinus.ObjectivesList = { --List of scenario objectives
 	[1] = {Type = "AskAround", DisplayInfo = "Figure out what's going on. Asking around will help."},
@@ -36,7 +40,7 @@ BlackoutMinus.ObjectiveInformation = {
 		["-142.0, 2.5, 100.0"] = {Loc = CFrame.new(-122.016, 4.5, 107.878) * CFrame.fromEulerAnglesYXZ(0, math.rad(118.965), 0), Radius = Vector3.new(3, 7, 5.825)},
 		["2.0, 2.5, 452.0"] = {Loc = CFrame.new(-69.5, 5, 452), Radius = Vector3.new(3, 8, 8)},
 		["-190.0, 2.5, 452.0"] = {Loc = CFrame.new(-122.5, 5, 452), Radius = Vector3.new(3, 8, 8)},
-		["-72.0, 33.0, 93.0"] = {Loc = CFrame.new(-51.949, 35.501, 111.782) * CFrame.fromEulerAnglesYXZ(0, math.rad(73.294), 0), Radius = Vector3.new(3, 8, 7.946)},
+		["-12.0, 33.0, 108.2"] = {Loc = CFrame.new(-51.949, 35.501, 111.782) * CFrame.fromEulerAnglesYXZ(0, math.rad(73.294), 0), Radius = Vector3.new(3, 8, 7.946)},
 		["-179.0, 66.5, 93.0"] = {Loc = CFrame.new(-160.704, 36.501, 114.619) * CFrame.fromEulerAnglesYXZ(0, math.rad(109.747), 0), Radius = Vector3.new(3, 10, 8)},
 		["-179.0, 66.5, 438.0"] = {Loc = CFrame.new(-160.704, 36.501, 114.619) * CFrame.fromEulerAnglesYXZ(0, math.rad(109.747), 0), Radius = Vector3.new(3, 10, 8)}
 	}
@@ -93,6 +97,7 @@ BlackoutMinus.Setup = function(Mall)
 				newGenerator.Structure.BrokenLight.Lightpart.PointLight.Enabled = false
 				newGenerator.Structure.FunctionLight.Lightpart.Material = Enum.Material.Neon
 				newGenerator.Structure.FunctionLight.Lightpart.PointLight.Enabled = true
+				newGenerator.Structure.Top.PowerOn:Play()
 			end)
 		else
 			print(newGenerator.WorldPivot.Position)
@@ -131,6 +136,7 @@ BlackoutMinus.Setup = function(Mall)
 					newGenerator.Structure.BrokenLight.Lightpart.PointLight.Enabled = false
 					newGenerator.Structure.FunctionLight.Lightpart.Material = Enum.Material.Neon
 					newGenerator.Structure.FunctionLight.Lightpart.PointLight.Enabled = true
+					newGenerator.Structure.Top.PowerOn:Play()
 				end
 			end)
 		end
@@ -174,19 +180,43 @@ BlackoutMinus.Setup = function(Mall)
 	end
 end
 
-BlackoutMinus.Trigger = function(Mall)
-	for i, v in pairs(Mall.Structure.Lighting:GetChildren()) do
-		v.SpotLight.Enabled = false
+BlackoutMinus.Trigger = function(Mall) --makes lights turn out and doors slam and also centers players into the middle of the mall
+	CutsceneManager:Fire({Camera = script.Cameras.BlackoutPerspective.CFrame})
+	
+	for _, player in Players:GetPlayers() do
+		player.Character:PivotTo(CFrame.new(-97.9, 4.1, 164.6))
 	end
+	
+	task.wait(1)
 	
 	local BlackoutSound = script.ScenarioObjects.BlackoutSound
 	BlackoutSound.Parent = game:GetService("SoundService")
 	BlackoutSound:Play()
+	task.wait(0.5)
+	
+	for i, v in pairs(Mall.Structure.Lighting:GetChildren()) do
+		v.SpotLight.Enabled = false
+	end
+	
+	task.wait(3)
+	
+	CutsceneManager:Fire({Camera = script.Cameras.ExitShutPerspective.CFrame})
+	
+	task.wait(1)
+	
+	local DoorSlamSound = script.ScenarioObjects.DoorSound
+	DoorSlamSound.Parent = game:GetService("SoundService")
+	DoorSlamSound:Play()
+	task.wait(0.5)
 	
 	for i, v in pairs(Mall.Structure.ExitBlocks:GetChildren()) do
 		v.Transparency = 0
 		v.CanCollide = true
 	end
+	
+	task.wait(2)
+	
+	CutsceneManager:Fire({ResetEverything = "ResetEverything"})
 end
 
 return BlackoutMinus
