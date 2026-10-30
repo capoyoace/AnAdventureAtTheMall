@@ -9,6 +9,7 @@ local Players = game:GetService("Players")
 
 local ObjectiveDialogue = ServerStorage.Events.ObjectiveDialogue
 local MunsterHearing = ReplicatedStorage.Remotes.MunsterHearing
+local StopLounging = ServerStorage.Events.CancelLounge
 
 local Response = script.Response
 
@@ -23,9 +24,15 @@ NPCHandler.Talk = function(player : Player, NPC, bondLevel) --Handles talking to
 	if game:GetAttribute("ScenarioStarted") == false then --gets dialogue based on whether or not the scenario has started or not
 		NPCDialogue = require(ReplicatedStorage.NPCDialogue:FindFirstChild(NPCType.."Dialogue")).PreScenario[DialogueBreed]
 	else
-		if bondLevel == "Unbonded" then
+		if bondLevel == "Unbonded" then --makes sure to set the dialogue correctly in the instance of something weird happening
 			bondLevel = 0
 			print("Bond level changed for the purpose of the objective.")
+		elseif bondLevel == 2 then
+			bondLevel = 1
+			print("Bond level changed for the purpose of the objective.")
+		elseif bondLevel == -2 then
+			bondLevel = -1
+			print("Bond level changed for the purpose of the objective")
 		end
 		
 		if CurrentObjective.Type == "AskAround" then
@@ -158,6 +165,9 @@ NPCHandler.Talk = function(player : Player, NPC, bondLevel) --Handles talking to
 			else
 				DialogueUI.Speech.Text = DialogueBlock[Current].Speech
 			end
+		elseif DialogueBlock[Current].Type == "ModNext" then --if the NPC's speech relies on a modifier, pipes that in
+			local modifier = CurrentObjective[CurrentObjective.Modifier]
+			DialogueUI.Speech.Text = DialogueBlock[Current].Speech[modifier]
 		else
 			local Consequence = DialogueBlock[Current].Consequence --if the dialogue has come to a close, calculates the consequence in relationship from that conversation
 			if game:GetAttribute("ScenarioStarted") == false then --makes sure that the scenario isn't going on before changing bond level; once the scenario starts, you can't bond with NPCs
@@ -173,8 +183,12 @@ NPCHandler.Talk = function(player : Player, NPC, bondLevel) --Handles talking to
 			
 			if CurrentObjective then
 				if NPC:GetAttribute("InTheKnow") == "Knowledgeable" then --if the player just received objective information lets the handler know
-					print("you found out information!!! Fire!!!")
-					ObjectiveDialogue:Fire(NPC)
+					if Consequence == 1 then
+						print("you found out information!!! Fire!!!")
+						ObjectiveDialogue:Fire(NPC)
+					else
+						print("looks like you'll have to wait around for the knowledge to spread...")
+					end
 				elseif NPC:HasTag("NPCToFind") then
 					print("you've just received critical information!!! Fire!!!")
 					ObjectiveDialogue:Fire(NPC)
@@ -225,9 +239,10 @@ NPCHandler.Lounge = function(NPC) --Handles NPC moving around the mall
 		downCost = 10
 	end
 	
-	local GigaPath = PathfindingService:CreatePath({AgentCanJump = false, AgentRadius = 3, Costs = {Up = upCost, Down = downCost}})
+	local GigaPath = PathfindingService:CreatePath({AgentCanJump = false, AgentRadius = 3, Costs = {Up = upCost, Down = downCost, Outside = 20}})
 	
 	local shouldStop = false
+	local cancelLounge = false
 	
 	local Humanoid = NPC.Humanoid :: Humanoid
 	
@@ -263,13 +278,15 @@ NPCHandler.Lounge = function(NPC) --Handles NPC moving around the mall
 				end
 			end
 			
+			if cancelLounge then
+				break
+			end
+			
 			if success then
 				continue()
 			else
 				warn(Error)
 			end
-			
-			print("proceeding")
 		end
 	end
 	
@@ -281,8 +298,16 @@ NPCHandler.Lounge = function(NPC) --Handles NPC moving around the mall
 		walkPath()
 	end)
 	
+	StopLounging.Event:Connect(function()
+		cancelLounge = true
+	end)
+	
 	while true do
 		walkPath()
+		
+		if cancelLounge then
+			break
+		end
 	end
 end
 
@@ -343,6 +368,16 @@ NPCHandler.MunsterAI = function(Munster : Model) --handles the munster ai
 		enraged = true
 		Munster.Humanoid:MoveTo(Munster.Humanoid.RootPart.Position)
 		
+		task.spawn(function()
+			while task.wait(math.random(1, 4)) do
+				Munster.Head.Roar:Play()
+				Munster.Head.Roar.Ended:Wait()
+				if enraged == false then
+					break
+				end
+			end
+		end)
+		
 		while wait(0.1) do
 			Munster.Humanoid:MoveTo(character.Humanoid.RootPart.Position)
 			
@@ -350,11 +385,15 @@ NPCHandler.MunsterAI = function(Munster : Model) --handles the munster ai
 				break
 			end
 			
-			if math.abs(Munster.Humanoid.RootPart.Position.Magnitude - character.Humanoid.RootPart.Position.Magnitude) > 30 then
+			if math.abs(Munster.Humanoid.RootPart.Position.Magnitude - character.Humanoid.RootPart.Position.Magnitude) > 100 then
 				break
 			end
 			
 			if character.Humanoid.Health <= 0 then
+				break
+			end
+			
+			if player:GetAttribute("Hiding") then
 				break
 			end
 		end
@@ -372,7 +411,7 @@ NPCHandler.MunsterAI = function(Munster : Model) --handles the munster ai
 		print("prompt shown")
 			
 		local didHear = math.random(1, 5) --rolls a random number cause the munster's hearing isn't all that good
-		if didHear <= 4 and player:GetAttribute("Zone") == "" then
+		if didHear <= 4 and player:GetAttribute("Zone") == "" and not player:GetAttribute("Hiding") then
 			pursuePlayer(player, player.Character)
 		else
 			warn("you're lucky it didn't hear you bucko...")
@@ -383,7 +422,7 @@ NPCHandler.MunsterAI = function(Munster : Model) --handles the munster ai
 		if v:IsA("BasePart") then
 			v.Touched:Connect(function(hit)
 				local player = Players:GetPlayerFromCharacter(hit.Parent)
-				if player then
+				if player and not player:GetAttribute("Hiding") then
 					player.Character.Humanoid.Health = 0
 				end
 			end)
