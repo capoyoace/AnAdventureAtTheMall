@@ -7,6 +7,8 @@ local Players = game:GetService("Players")
 
 local RequestHide = ReplicatedStorage.Remotes.ActivateHiding
 local ActivateHiding = ServerStorage.Events.ActivateHiding
+local CutsceneServer = ServerStorage.Events.CutsceneManager
+local CutsceneClient = ReplicatedStorage.Remotes.CutsceneManager
 
 _G.PlayersData = { --sets up the server data
 	RunInformation = {
@@ -68,7 +70,7 @@ end
 
 local function StartPrepPhase()
 	ScenarioModule.Setup(TheMall)
-	local Time = math.random(10, 10) --waits a random amount of time; this will actually be anywher from 3 (120) to 7 (420) minutes
+	local Time = math.random(30, 45) --waits a random amount of time; this will actually be anywher from 3 (120) to 7 (420) minutes
 	
 	task.wait(Time)
 	
@@ -253,4 +255,8 @@ RequestHide.OnServerEvent:Connect(function(player, hidingSpot, hidingOption)
 	
 	character:PivotTo(hidingSpot.CFrame * CFrame.new(0, 5, 0))
 	player:SetAttribute("Hiding", nil)
+end)
+
+CutsceneServer.Event:Connect(function(stuff)
+	CutsceneClient:FireAllClients(stuff)
 end)
