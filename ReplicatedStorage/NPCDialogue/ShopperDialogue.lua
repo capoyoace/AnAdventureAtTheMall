@@ -79,7 +79,7 @@ Dialogue.PreScenario = { --The hierarchy follows this pattern: Dialogue breed ->
 	},
 	["Shopaholic"] = {
 		Unbonded = {
-			[1] = {Type = "Respond", Speech = "Ohhhh my gosh you are new to the mall right???? I don't recognize you from the 12232 times I've been hereeeee", Respones = {
+			[1] = {Type = "Respond", Speech = "Ohhhh my gosh you are new to the mall right???? I don't recognize you from the 12232 times I've been hereeeee", Responses = {
 				[1] = "Yeah, this is my first time.",
 				[2] = "Why do you speak in such an annoying manner?",
 				[3] = "Wow, you must really love the mall!"
@@ -110,7 +110,7 @@ Dialogue.PreScenario = { --The hierarchy follows this pattern: Dialogue breed ->
 				[8] = {Index = 3, Type = "Close", Consequence = 0}
 			},
 			[1] = {
-				[1] = {Type = "Respond", Speech = "eeeeeeeeeeeeeeee", Respones = {
+				[1] = {Type = "Respond", Speech = "eeeeeeeeeeeeeeee", Responses = {
 					[1] = "Increase",
 					[2] = "Decrease",
 					[3] = "Neutral"
@@ -121,10 +121,10 @@ Dialogue.PreScenario = { --The hierarchy follows this pattern: Dialogue breed ->
 			},
 			[2] = {
 				[1] = {Type = "Next", Speech = "Ohhh my gosh it's my favorite little guyyyyy awwwww"},
-				[2] = {Type = "Close"}
+				[2] = {Type = "Close", Consequence = 0}
 			},
 			[-1] = {
-				[1] = {Type = "Respond", Speech = "meanieeeeee", Respones = {
+				[1] = {Type = "Respond", Speech = "meanieeeeee", Responses = {
 					[1] = "Increase",
 					[2] = "Decrease",
 					[3] = "Neutral"
@@ -135,7 +135,7 @@ Dialogue.PreScenario = { --The hierarchy follows this pattern: Dialogue breed ->
 			},
 			[-2] = {
 				[1] = {Type = "Next", Speech = "You little meanie get away from meeeeee"},
-				[2] = {Type = "Close"}
+				[2] = {Type = "Close", Consequence = 0}
 			}
 		}
 	}
@@ -250,11 +250,15 @@ Dialogue.BlackoutMinus = { --The hierarchy follows this pattern: Dialogue breed 
 					[1] = "I was able to ask a security guard, and all he told me was there's a backup generator at the %s I should activate."
 				}, Modifier = "loc"},
 				[2] = {Index = 1, Type = "ModNext", Speech = {
-					["downstairs maintenance room"] = "Oh, I know where those are! There are three of them, actually."
-				}}
+					["downstairs maintenance room"] = "Oh, I know where those are! There are three of them, actually. Two at the end of a hallway, and there's one next to the elevator in the food court.",
+					["upstairs maintenace room"] = "Oh yeah! If you look right near the elevator upstairs above the food court, you'll see it. Big green door with an electrical warning sign on it.",
+					["roof"] = "It's near the elevator above the food court upstairs. It says \"roof access\" on it, so you'll be able to see it pretty easily."
+				}},
+				[3] = {Index = 1, Type = "Next", Speech = "Hope that helped!! Good luck finding it."},
+				[4] = {Index = 1, Type = "Close"}
 			},
 			[-1] = {
-				[1] = {Type = "Next", Speech = "Placeholder"},
+				[1] = {Type = "Next", Speech = "Bruh. I don't want to help you. Leave. Now."},
 				[2] = {Type = "Close"}
 			},
 		},
@@ -551,6 +555,102 @@ Dialogue.BlackoutMinus = { --The hierarchy follows this pattern: Dialogue breed 
 			},
 			[-1] = {
 				[1] = {Type = "Next", Speech = "..............................."},
+				[2] = {Type = "Close"}
+			}
+		}
+	},
+	["Shopaholic"] = {
+		[1] = {
+			["Clueless"] = {
+				[0] = {
+					[1] = {Type = "Next", Speech = "ohhhhh my gossh what is going onnnnnn"},
+					[2] = {Type = "Close"}
+				},
+				[1] = {
+					[1] = {Type = "Respond", Speech = "hey little guy why are the lights outtttt???", Responses = {
+						[1] = "That's what I'm trying to figure out."
+					}},
+					[2] = {Index = 1, Type = "Next", Speech = "well little guy I will try to figure it out tooooo"},
+					[3] = {Index = 1, Type = "Next", Speech = "if I find anything out I'll tell youuuuu"},
+					[4] = {Index = 1, Type = "Close"}
+				},
+				[-1] = {
+					[1] = {Type = "Next", Speech = "it was you wasn't itttttt little meanie? tbh I wouldn't be surprised"},
+					[2] = {Type = "Close"}
+				}
+			},
+			["Knowledgeable"] = {
+				[0] = {
+					[1] = {Type = "Respond", Speech = "why can't theyyyyy fix this alreadyyy", Responses = {
+						[1] = "Is something broken? What's going on??"
+					}},
+					[2] = {Index = 1, Type = "Next", Speech = "well little guy the power went mega outttt"},
+					[3] = {Index = 1, Type = "Next", Speech = "like it's so out that even the exitsss are broken"},
+					[4] = {Index = 1, Type = "Next", Speech = "which is like totally not cool!!! I have other places to be!!!"},
+					[5] = {Index = 1, Type = "Next", Speech = "like.... uh... liiiiiike...."},
+					[6] = {Index = 1, Type = "Next", Speech = "well nevermind this is like a DREAM COME TRUE!!!! I'm trapped in my favorite place of all timeeeee!!!"},
+					[7] = {Index = 1, Type = "Next", Speech = "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"},
+					[8] = {Index = 1, Type = "Close", Consequence = 1}
+				},
+				[1] = {
+					[1] = {Type = "Respond", Speech = "hey little guy guess what I found out what's going onnnnnnnn", Responses = {
+						[1] = "Really?? What is it????"
+					}},
+					[2] = {Index = 1, Type = "Next", Speech = "well the power went so out that the lights are gone and the exits are shut tighttt"},
+					[3] = {Index = 1, Type = "Next", Speech = "and you know what that means???"},
+					[4] = {Index = 1, Type = "Next", Speech = "WE'RE TRAPPED IN HERE FOREVERRRR!!! I'M LITERALLY SO EXCITEDDDDDD"},
+					[5] = {Index = 1, Type = "Respond", Speech = "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee", Responses = {
+						[2] = "I personally don't like that idea. I'm gonna try to find a way out"
+					}},
+					[6] = {Index = 2, Type = "Next", Speech = "awwww you're no fun little guy"},
+					[7] = {Index = 2, Type = "Next", Speech = "at least take your time a little bitttt"},
+					[8] = {Index = 2, Type = "Close", Consequence = 1}
+				},
+				[-1] = {
+					[1] = {Type = "Next", Speech = "awwwwww poor little guy looks so confused"},
+					[2] = {Type = "Next", Speech = "poor little guy doesn't get to know what's going on"},
+					[3] = {Type = "Next", Speech = "y'know if you weren't here it would be like paradise but no"},
+					[4] = {Type = "Close", Consequence = 0}
+				}
+			}
+		},
+		[2] = {
+			[0] = {
+				[1] = {Type = "Next", Speech = "I literally cannot wait to spend the rest of my life in this placeeeee"},
+				[2] = {Type = "Next", Speech = "dreammm comeeeee trueeeee"},
+				[3] = {Type = "Close"}
+			},
+			[1] = {
+				[1] = {Type = "Respond", Speech = "hey there little guy have you made any progress towards escaping and stufff", Responses = {
+					[1] = "Not really. I'm currently checking all of the exits."
+				}},
+				[2] = {Index = 1, Type = "Next", Speech = "that's good don't hurry or anythinggggg"},
+				[3] = {Index = 1, Type = "Close"}
+			},
+			[-1] = {
+				[1] = {Type = "Next", Speech = "ew I was having a good time and then you came up"},
+				[2] = {Type = "Next", Speech = "how about you go away and I continue having a good time pleaseeeee"},
+				[3] = {Type = "Close"}
+			}
+		},
+		[3] = {
+			[0] = {
+				[1] = {Type = "Respond", Speech = "hmmmmm which store should I live in", Responses = {
+					[1] = "Do you know where a security guard is?"
+				}},
+				[2] = {Index = 1, Type = "Next", Speech = "yeahhhh there's one upstairs somewhere I think"},
+				[3] = {Index = 1, Type = "Close"}
+			},
+			[1] = {
+				[1] = {Type = "Respond", Speech = "how's it going little guyyyyyy", Responses = {
+					[1] = "It's... uh... going. Do you know where a security guard is?"
+				}},
+				[2] = {Index = 1, Type = "Next", Speech = "well I think I saw one in the food court upstairs but I may be wrong"},
+				[3] = {Index = 1, Type = "Next", Speech = "but you should like take your time so I can stay hereeeeee"},
+				[4] = {Index = 1, Type = "Close"}
+			},
+			[-1] = {
+				[1] = {Type = "Next", Speech = "ewwwww it's this little gremlin again go awayyyyyy"},
 				[2] = {Type = "Close"}
 			}
 		}
