@@ -141,6 +141,7 @@ Objectives.StartObjective = function(Number, Objective)
 		end
 	elseif Objective.Type == "AskAround" then --if you need information from an NPC handles that
 		local eligibleNPCs = {}
+		local objectiveWon = false
 		
 		for i, NPC in pairs(Mall.NPCs:GetChildren()) do --gets all of the NPCs and makes them clueless lol
 			if NPC:GetAttribute("NPCType") == "Shopper" then
@@ -150,7 +151,7 @@ Objectives.StartObjective = function(Number, Objective)
 		end
 		
 		task.spawn(function()
-			while true do --gets a random clueless NPC
+			while not objectiveWon do --gets a random clueless NPC
 				local randomNum = math.random(1, #eligibleNPCs)
 				local randomNPC = eligibleNPCs[randomNum]
 				randomNPC:SetAttribute("InTheKnow", "Knowledgeable") --blesses the clueless NPC with knowledge
@@ -174,6 +175,7 @@ Objectives.StartObjective = function(Number, Objective)
 				CompleteObjective:Fire(Number)
 				print(Number)
 				connection:Disconnect()
+				objectiveWon = true
 			end
 		end)
 	elseif Objective.Type == "LocateArea" then --if the player needs to find a certain area handles that
