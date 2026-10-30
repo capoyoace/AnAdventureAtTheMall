@@ -12,6 +12,7 @@ local PlayerGui = player.PlayerGui
 local UpdateObjective = ReplicatedStorage.Remotes.UpdateObjective
 local FreezePlayer = ReplicatedStorage.Remotes.FreezePlayer
 local ActivateHiding = ReplicatedStorage.Remotes.ActivateHiding
+local CutsceneManager = ReplicatedStorage.Remotes.CutsceneManager
 
 local ObjectiveDisplay = PlayerGui:WaitForChild("ObjectiveDisplay")
 
@@ -73,5 +74,18 @@ end)
 InputService.InputEnded:Connect(function(input)
 	if input.KeyCode == Enum.KeyCode.LeftShift or input.KeyCode == Enum.KeyCode.LeftControl then
 		player.Character.Humanoid.WalkSpeed = 30
+	end
+end)
+
+CutsceneManager.OnClientEvent:Connect(function(dataTable) --issue with receiving data table... stinking roblox T_T
+	local Camera = workspace.CurrentCamera
+	
+	if dataTable.Camera then
+		Camera.CameraType = Enum.CameraType.Scriptable
+		Camera.CFrame = dataTable.Camera
+	elseif dataTable.ResetEverything then
+		Camera.CameraType = Enum.CameraType.Custom
+	else
+		warn("what the actual heck")
 	end
 end)
