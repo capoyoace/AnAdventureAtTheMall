@@ -12,7 +12,7 @@ local FreezePlayer = ReplicatedStorage.Remotes.FreezePlayer
 
 local NPCFolder = ServerStorage.NPCs
 
-local ShopperCount = 10
+local ShopperCount = 9
 
 PhysicsService:RegisterCollisionGroup("NPCs") --sets the NPCs so they can't collide with one another
 PhysicsService:CollisionGroupSetCollidable("NPCs", "NPCs", false)
