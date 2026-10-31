@@ -50,6 +50,8 @@ end)
 
 ActivateHiding.OnClientEvent:Connect(function()
 	Freeze(true)
+	player.PlayerGui.ObjectiveDisplay.HelpfulInformation.Text = "Press space to exit hiding spot."
+	player.PlayerGui.ObjectiveDisplay.HelpfulInformation.Visible = true
 end)
 
 player:GetAttributeChangedSignal("InDialogue"):Connect(function() --un/freezes the player when their dialogue state changes
@@ -67,13 +69,14 @@ InputService.InputBegan:Connect(function(input)
 		if player:GetAttribute("Hiding") then
 			ActivateHiding:FireServer(player:GetAttribute("Hiding"):Get(), false)
 			Freeze(false)
+			player.PlayerGui.ObjectiveDisplay.HelpfulInformation.Visible = false
 		end
 	end
 end)
 
 InputService.InputEnded:Connect(function(input)
 	if input.KeyCode == Enum.KeyCode.LeftShift or input.KeyCode == Enum.KeyCode.LeftControl then
-		player.Character.Humanoid.WalkSpeed = 30
+		player.Character.Humanoid.WalkSpeed = 20
 	end
 end)
 
