@@ -11,7 +11,7 @@ local ObjectiveHandler = require(ServerStorage.Tasks.ObjectiveHandler)
 local CutsceneManager = ServerStorage.Events.CutsceneManager
 
 BlackoutMinus.ObjectivesList = { --List of scenario objectives
-	[1] = {Type = "AskAround", DisplayInfo = "Figure out what's going on. Asking around will help."},
+	[1] = {Type = "AskAround", DisplayInfo = "Figure out what's going on. Asking around will help.", AskType = "KnowledgeBased"},
 	[2] = {Type = "LocateArea", DisplayInfo = "Check all of the exits... maybe there's one that isn't completely locked down.", Quantity = 5, Objects = {}, AreaLocations = {
 		[1] = {Loc = CFrame.new(-206, 9, 163) * CFrame.fromEulerAnglesYXZ(0, math.rad(90), 0), Radius = Vector3.new(62, 16, 10)},
 		[2] = {Loc = CFrame.new(122, 9, 84) * CFrame.fromEulerAnglesYXZ(0, math.rad(180), 0), Radius = Vector3.new(20, 16, 10)},
