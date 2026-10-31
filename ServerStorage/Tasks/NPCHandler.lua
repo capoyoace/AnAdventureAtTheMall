@@ -35,7 +35,7 @@ NPCHandler.Talk = function(player : Player, NPC, bondLevel) --Handles talking to
 			print("Bond level changed for the purpose of the objective")
 		end
 		
-		if CurrentObjective.Type == "AskAround" then
+		if CurrentObjective.Type == "AskAround" and CurrentObjective.AskType == "KnowledgeBased" then
 			NPCDialogue = require(ReplicatedStorage.NPCDialogue:FindFirstChild(NPCType.."Dialogue"))[RunData.Scenario][DialogueBreed][RunData.Objective][NPC:GetAttribute("InTheKnow")]
 		else
 			NPCDialogue = require(ReplicatedStorage.NPCDialogue:FindFirstChild(NPCType.."Dialogue"))[RunData.Scenario][DialogueBreed][RunData.Objective]
@@ -189,6 +189,8 @@ NPCHandler.Talk = function(player : Player, NPC, bondLevel) --Handles talking to
 					else
 						print("looks like you'll have to wait around for the knowledge to spread...")
 					end
+				elseif CurrentObjective.Type == "AskAround" and CurrentObjective.AskType == "InformationBased" then
+					ObjectiveDialogue:Fire()
 				elseif NPC:HasTag("NPCToFind") then
 					print("you've just received critical information!!! Fire!!!")
 					ObjectiveDialogue:Fire(NPC)
@@ -216,7 +218,9 @@ NPCHandler.Talk = function(player : Player, NPC, bondLevel) --Handles talking to
 			NPC:SetAttribute("InDialogue", false)
 			NPC.HumanoidRootPart.Anchored = false
 			connection:Disconnect()
-			NPCRoot:SetNetworkOwner(nil) --double checks that the NPC's network owner is the server not the player
+			if not NPCRoot.Anchored then
+				NPCRoot:SetNetworkOwner(nil) --double checks that the NPC's network owner is the server not the player
+			end
 			Current = 0
 			wait(2)
 			NPC.Torso.ProximityPrompt.Enabled = true
@@ -279,6 +283,10 @@ NPCHandler.Lounge = function(NPC) --Handles NPC moving around the mall
 			end
 			
 			if cancelLounge then
+				if Humanoid then
+					print("stopping")
+					Humanoid:MoveTo(Humanoid.RootPart.Position)
+				end
 				break
 			end
 			
@@ -430,6 +438,49 @@ NPCHandler.MunsterAI = function(Munster : Model) --handles the munster ai
 	end
 	
 	lounge()
+end
+
+NPCHandler.MoveToPoint = function(it, point)
+	it.Humanoid.RootPart:SetNetworkOwner(nil)
+	
+	local Path = PathfindingService:CreatePath()
+	
+	local success, Error = pcall(function()
+		Path:ComputeAsync(it.Humanoid.RootPart.Position, point)
+	end)
+	
+	if success then
+		for _, v in Path:GetWaypoints() do
+			it.Humanoid:MoveTo(v.Position)
+			it.Humanoid.MoveToFinished:Wait()
+		end
+	else
+		warn(Error)
+	end
+end
+
+NPCHandler.FollowPlayer = function(follwer, player)
+	local playerHumanoid = player.Humanoid
+	local followerHumanoid = follwer.Humanoid
+	
+	followerHumanoid.WalkSpeed = playerHumanoid.WalkSpeed
+	
+	local shouldStop = false
+	
+	while wait(0.1) do
+		local difference = (playerHumanoid.RootPart.Position - followerHumanoid.RootPart.Position).Magnitude
+		if difference > 7.5 then
+			followerHumanoid:MoveTo(playerHumanoid.RootPart.Position)
+		else
+			if followerHumanoid.WalkToPoint ~= followerHumanoid.RootPart.Position then
+				followerHumanoid:MoveTo(followerHumanoid.RootPart.Position)
+			end
+		end
+		
+		if shouldStop then
+			break
+		end
+	end
 end
 
 return NPCHandler
