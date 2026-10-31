@@ -10,6 +10,8 @@ local UpdateObjective = ReplicatedStorage.Remotes.UpdateObjective
 local CompleteObjective = ServerStorage.Events.CompleteObjective
 local ObjectiveDialogue = ServerStorage.Events.ObjectiveDialogue
 
+local NPCHandler = require(ServerStorage.Tasks.NPCHandler)
+
 local Mall = workspace.Mall
 
 for i, v in pairs(workspace:GetChildren()) do
@@ -25,6 +27,7 @@ for i, v in pairs(workspace:GetChildren()) do
 end
 
 Objectives.StartObjective = function(Number, Objective)
+	print("we are starting the objective ohhhh yeah")
 	local Completed = 0
 	
 	--Figures out what the objective is asking for--
@@ -140,44 +143,56 @@ Objectives.StartObjective = function(Number, Objective)
 			end)
 		end
 	elseif Objective.Type == "AskAround" then --if you need information from an NPC handles that
-		local eligibleNPCs = {}
-		local objectiveWon = false
-		
-		for i, NPC in pairs(Mall.NPCs:GetChildren()) do --gets all of the NPCs and makes them clueless lol
-			if NPC:GetAttribute("NPCType") == "Shopper" then
-				NPC:SetAttribute("InTheKnow", "Clueless")
-				table.insert(eligibleNPCs, NPC)
-			end
-		end
-		
-		task.spawn(function()
-			while not objectiveWon do --gets a random clueless NPC
-				local randomNum = math.random(1, #eligibleNPCs)
-				local randomNPC = eligibleNPCs[randomNum]
-				randomNPC:SetAttribute("InTheKnow", "Knowledgeable") --blesses the clueless NPC with knowledge
-				table.remove(eligibleNPCs, randomNum)
-				
-				if #eligibleNPCs <= 0 then break end --once all of the NPCs are knowledgeable, quits out of this function
+		if Objective.AskType == "KnowledgeBased" then
+			local eligibleNPCs = {}
+			local objectiveWon = false
 
-				task.wait(math.random(30, 120)) --slowly waits to make more NPCs knowledgeable
-			end
-		end)
-		
-		connection = ObjectiveDialogue.Event:Connect(function(NPC) --once the player receives the knowledge, updates the objective
-			if NPC:GetAttribute("InTheKnow") == "Knowledgeable" then
-				
-				for i, v in Mall.NPCs:GetChildren() do --resets all of the NPCs knowledge status
-					if v:GetAttribute("InTheKnow") then
-						v:SetAttribute("InTheKnow", nil)
-					end
+			for i, NPC in pairs(Mall.NPCs:GetChildren()) do --gets all of the NPCs and makes them clueless lol
+				if NPC:GetAttribute("NPCType") == "Shopper" then
+					NPC:SetAttribute("InTheKnow", "Clueless")
+					table.insert(eligibleNPCs, NPC)
 				end
-				
-				CompleteObjective:Fire(Number)
-				print(Number)
-				connection:Disconnect()
-				objectiveWon = true
 			end
-		end)
+
+			task.spawn(function()
+				while not objectiveWon do --gets a random clueless NPC
+					local randomNum = math.random(1, #eligibleNPCs)
+					local randomNPC = eligibleNPCs[randomNum]
+					randomNPC:SetAttribute("InTheKnow", "Knowledgeable") --blesses the clueless NPC with knowledge
+					table.remove(eligibleNPCs, randomNum)
+
+					if #eligibleNPCs <= 0 then break end --once all of the NPCs are knowledgeable, quits out of this function
+
+					task.wait(math.random(30, 120)) --slowly waits to make more NPCs knowledgeable
+				end
+			end)
+
+			connection = ObjectiveDialogue.Event:Connect(function(NPC) --once the player receives the knowledge, updates the objective
+				if NPC:GetAttribute("InTheKnow") == "Knowledgeable" then
+
+					for i, v in Mall.NPCs:GetChildren() do --resets all of the NPCs knowledge status
+						if v:GetAttribute("InTheKnow") then
+							v:SetAttribute("InTheKnow", nil)
+						end
+					end
+
+					CompleteObjective:Fire(Number)
+					print(Number)
+					connection:Disconnect()
+					objectiveWon = true
+				end
+			end)
+		elseif Objective.AskType == "InformationBased" then
+			local Needed = Objective.Number
+			
+			connection = ObjectiveDialogue.Event:Connect(function()
+				Completed += 1
+				if Completed >= Needed then
+					CompleteObjective:Fire(Number)
+					connection:Disconnect()
+				end
+			end)
+		end
 	elseif Objective.Type == "LocateArea" then --if the player needs to find a certain area handles that
 		for i, v in Objective.AreaLocations do --makes a part for each area the player needs to find
 			local newRadius = Instance.new("Part", Mall.Scenario.Objectives)
@@ -274,6 +289,14 @@ Objectives.StartObjective = function(Number, Objective)
 		end
 	else
 		warn("Objective type "..Objective.Type.." not found. Did you spell it correctly or implement it?") --warns me if the objective type wasn't found so I know something ain't working properly...
+	end
+	
+	if Objective.Followers then
+		for i, v in Objective.Followers do
+			task.spawn(function()
+				NPCHandler.FollowPlayer(v, Players:GetChildren()[1].Character)
+			end)
+		end
 	end
 	
 	for _, player in pairs(Players:GetPlayers()) do --informs all clients what to do
