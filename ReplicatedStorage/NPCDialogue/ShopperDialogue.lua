@@ -709,6 +709,35 @@ Dialogue.MunsterMinus = {
 				[3] = {Type = "Close"}
 			}
 		}
+	},
+	["Shopaholic"] = {
+		[1] = {
+			[0] = {
+				[1] = {Type = "Respond", Speech = "my poor little headddddddddddddddddddd...", Responses = {
+					[1] = "Are you okay???"
+				}},
+				[2] = {Index = 1, Type = "Next", Speech = "noooooo... at least I don't feel gooooood...."},
+				[3] = {Index = 1, Type = "Next", Speech = "all I wanted to do today was pick up some new nailsssssssss...."},
+				[4] = {Index = 1, Type = "Close"}
+			},
+			[1] = {
+				[1] = {Type = "Respond", Speech = "arrrrrghhhhhhh whyyyyyyyyyyyyy", Responses = {
+					[1] = "You good???"
+				}},
+				[2] = {Index = 1, Type = "Next", Speech = "I dunno little guyyy.... my head hurtsssss"},
+				[3] = {Index = 1, Type = "Next", Speech = "you should check on everyone else thoughhhhhh..."},
+				[4] = {Index = 1, Type = "Close"}
+			},
+			[-1] = {
+				[1] = {Type = "Respond", Speech = "ohhhhhhhhh woe is meeeeeeeee", Responses = {
+					[1] = "Are you alright??"
+				}},
+				[2] = {Index = 1, Type = "Next", Speech = "my little head hurtssssss..."},
+				[3] = {Index = 1, Type = "Next", Speech = "oh. it's you. why do you careeeeeeee???"},
+				[4] = {Index = 1, Type = "Next", Speech = "if you wanna help my pain go awayyyyyyyy"},
+				[5] = {Index = 1, Type = "Close"}
+			}
+		}
 	}
 }
 
