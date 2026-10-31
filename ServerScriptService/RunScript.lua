@@ -70,7 +70,7 @@ end
 
 local function StartPrepPhase()
 	ScenarioModule.Setup(TheMall)
-	local Time = math.random(30, 45) --waits a random amount of time; this will actually be anywher from 3 (120) to 7 (420) minutes
+	local Time = math.random(10, 10) --waits a random amount of time; this will actually be anywher from 3 (120) to 7 (420) minutes
 	
 	task.wait(Time)
 	
@@ -93,10 +93,11 @@ local function ForceShops(RequiredShopList) --if the scenario requires some shop
 	end
 	
 	local function doThis(RandomShopToDestroy, i, v) --a function to replace an existing shop with a required one
-		local newShop = ServerStorage.Shops:FindFirstChild(v..RandomShopToDestroy:GetAttribute("Size")):Clone()
+		local newShop = ServerStorage.Shops:FindFirstChild(v)[RandomShopToDestroy:GetAttribute("Size")]:Clone()
 		newShop:PivotTo(RandomShopToDestroy.PrimaryPart.CFrame)
 		RandomShopToDestroy:Destroy()
 		table.remove(SpawnedShops, i)
+		warn("Successfully replaced shop!!!!")
 	end
 	
 	for i, v in RequiredShopList do
