@@ -190,7 +190,7 @@ NPCHandler.Talk = function(player : Player, NPC, bondLevel) --Handles talking to
 						print("looks like you'll have to wait around for the knowledge to spread...")
 					end
 				elseif CurrentObjective.Type == "AskAround" and CurrentObjective.AskType == "InformationBased" then
-					ObjectiveDialogue:Fire()
+					ObjectiveDialogue:Fire(NPC)
 				elseif NPC:HasTag("NPCToFind") then
 					print("you've just received critical information!!! Fire!!!")
 					ObjectiveDialogue:Fire(NPC)
@@ -268,6 +268,15 @@ NPCHandler.Lounge = function(NPC) --Handles NPC moving around the mall
 			local function continue()
 				for _, waypoint in pairs(GigaPath:GetWaypoints()) do
 					Humanoid:MoveTo(waypoint.Position)
+					
+					if cancelLounge then
+						if Humanoid then
+							print("stopping")
+							Humanoid:MoveTo(Humanoid.RootPart.Position)
+						end
+						break
+					end
+					
 					Humanoid.MoveToFinished:Wait()
 					if NPC:GetAttribute("InDialogue") == true then --checks if the NPC is in dialogue or not
 						while NPC:GetAttribute("InDialogue") == true do
@@ -280,14 +289,6 @@ NPCHandler.Lounge = function(NPC) --Handles NPC moving around the mall
 						break
 					end
 				end
-			end
-			
-			if cancelLounge then
-				if Humanoid then
-					print("stopping")
-					Humanoid:MoveTo(Humanoid.RootPart.Position)
-				end
-				break
 			end
 			
 			if success then
@@ -376,7 +377,16 @@ NPCHandler.MunsterAI = function(Munster : Model) --handles the munster ai
 		enraged = true
 		Munster.Humanoid:MoveTo(Munster.Humanoid.RootPart.Position)
 		
-		task.spawn(function()
+		local container --chooses a "container" to assign attributes to; player vs npc
+		if not player then
+			container = character
+		else
+			container = player
+		end
+		
+		container:SetAttribute("InPursuit", true)
+		
+		task.spawn(function() --makes funnee sound every now and then :D
 			while task.wait(math.random(1, 4)) do
 				Munster.Head.Roar:Play()
 				Munster.Head.Roar.Ended:Wait()
@@ -386,10 +396,10 @@ NPCHandler.MunsterAI = function(Munster : Model) --handles the munster ai
 			end
 		end)
 		
-		while wait(0.1) do
+		while wait(0.1) do --the munster consistently moves towards the player's current position
 			Munster.Humanoid:MoveTo(character.Humanoid.RootPart.Position)
 			
-			if player:GetAttribute("Zone") ~= "" then
+			if container:GetAttribute("Zone") ~= "" then --stops pursuing the player when they either enter a shop, get far enough away, die, or hide
 				break
 			end
 			
@@ -401,13 +411,14 @@ NPCHandler.MunsterAI = function(Munster : Model) --handles the munster ai
 				break
 			end
 			
-			if player:GetAttribute("Hiding") then
+			if container:GetAttribute("Hiding") then
 				break
 			end
 		end
 		
 		print("player has moved out of range, returning to regular movement pattern")
-		Munster.Humanoid:MoveTo(Munster.Humanoid.RootPart.Position)
+		Munster.Humanoid:MoveTo(Munster.Humanoid.RootPart.Position) --returns to regular movement pattern
+		container:SetAttribute("InPursuit", false)
 		enraged = false
 		
 		if expired then
@@ -415,33 +426,65 @@ NPCHandler.MunsterAI = function(Munster : Model) --handles the munster ai
 		end
 	end
 	
-	MunsterHearing.OnServerEvent:Connect(function(player)
+	MunsterHearing.OnServerEvent:Connect(function(player) --handles triggering munster with players
 		print("prompt shown")
-			
-		local didHear = math.random(1, 5) --rolls a random number cause the munster's hearing isn't all that good
-		if didHear <= 4 and player:GetAttribute("Zone") == "" and not player:GetAttribute("Hiding") then
+		
+		local lowestNumber = 1
+		
+		if player:GetAttribute("Crouching") then lowestNumber += 2 end --if the player is crouching it isn't as likely to hear them
+		
+		if player:GetAttribute("Invulnerable") == true then --if they're invulnerable it just ignores them
+			lowestNumber = 5
+		end
+		
+		local didHear = math.random(lowestNumber, 5) --rolls a random number based on the lowest number above
+		if didHear <= 4 and player:GetAttribute("Zone") == "" and not player:GetAttribute("Hiding") then --makes sure the player isn't unaccessible
 			pursuePlayer(player, player.Character)
 		else
 			warn("you're lucky it didn't hear you bucko...")
 		end
 	end)
 	
-	for i, v in pairs(Munster:GetChildren()) do
-		if v:IsA("BasePart") then
-			v.Touched:Connect(function(hit)
-				local player = Players:GetPlayerFromCharacter(hit.Parent)
-				if player and not player:GetAttribute("Hiding") then
-					player.Character.Humanoid.Health = 0
+	
+	for i, v in pairs(Mall.NPCs:GetChildren()) do --handles triggering munster with NPCs
+		if v:GetAttribute("NPCType") == "SecurityGuard" then
+			task.spawn(function()
+				while wait(0.1) do
+					local distance = (Munster.Humanoid.RootPart.Position - v.Humanoid.RootPart.Position).Magnitude
+					if distance <= 25 then --if the NPC comes within 25 studs of the munster attempts to chase them
+						if not v:GetAttribute("Hiding") and v:GetAttribute("Zone") == "" then --makes sure they're not unaccessible
+							local didHear = math.random(1, 5)
+							if didHear <= 4 then --if it does hear them pursues them
+								pursuePlayer(nil, v)
+							else
+								print("good job you haven't been heard")
+								wait(5)
+							end
+						end
+					end
 				end
 			end)
 		end
 	end
 	
-	lounge()
+	for i, v in pairs(Munster:GetChildren()) do --if a player or NPC bumps into the munster, instantaneously kills them lol
+		if v:IsA("BasePart") then
+			v.Touched:Connect(function(hit)
+				local player = Players:GetPlayerFromCharacter(hit.Parent)
+				if player and not player:GetAttribute("Hiding") and player:GetAttribute("Invulnerable") == false then
+					player.Character.Humanoid.Health = 0
+				elseif hit.Parent:GetAttribute("NPCType") == "SecurityGuard" and not hit.Parent:GetAttribute("Hiding") then
+					hit.Parent.Humanoid.Health = 0
+				end
+			end)
+		end
+	end
+	
+	lounge() --starts the munster
 end
 
-NPCHandler.MoveToPoint = function(it, point)
-	it.Humanoid.RootPart:SetNetworkOwner(nil)
+NPCHandler.MoveToPoint = function(it, point) --handles moving an NPC to a point once; pretty straightforward
+	it.Humanoid.RootPart:SetNetworkOwner(nil) --makes sure the NPC isn't all glitchy
 	
 	local Path = PathfindingService:CreatePath()
 	
@@ -459,25 +502,175 @@ NPCHandler.MoveToPoint = function(it, point)
 	end
 end
 
-NPCHandler.FollowPlayer = function(follwer, player)
-	local playerHumanoid = player.Humanoid
-	local followerHumanoid = follwer.Humanoid
+NPCHandler.FollowPlayer = function(follwer, player) --handles NPCs following the player
+	local playerHumanoid = player.Humanoid :: Humanoid
+	local followerHumanoid = follwer.Humanoid :: Humanoid
 	
-	followerHumanoid.WalkSpeed = playerHumanoid.WalkSpeed
+	local plrReference = Players:GetPlayerFromCharacter(player)
+	
+	local Mall = workspace.Mall
+	local Munster = workspace.Mall.Scenario.Enemies:FindFirstChild("Munster")
+	
+	followerHumanoid.WalkSpeed = playerHumanoid.WalkSpeed --syncs speeds
 	
 	local shouldStop = false
 	
-	while wait(0.1) do
-		local difference = (playerHumanoid.RootPart.Position - followerHumanoid.RootPart.Position).Magnitude
-		if difference > 7.5 then
-			followerHumanoid:MoveTo(playerHumanoid.RootPart.Position)
-		else
-			if followerHumanoid.WalkToPoint ~= followerHumanoid.RootPart.Position then
-				followerHumanoid:MoveTo(followerHumanoid.RootPart.Position)
+	local Path = PathfindingService:CreatePath({AgentRadius = 3, Costs = {DONTGOHERE = 20}}) --makes a path structure for pathfinding operations
+	
+	while wait(0.1) do --constant check of these things
+		if follwer:GetAttribute("InPursuit") == true then --handles when the NPC is being hunted
+			local walkToPart
+			local shortestDistance = 1000000000 --ridiculously high number to start
+			
+			for i, v in pairs(Mall.Scenario.SpecialStuff:GetChildren()) do --loops through available hiding spots and checks which is the closest
+				if v.Name == "HidingSpot" then
+					local thisDist = (v.Position - followerHumanoid.RootPart.Position).Magnitude
+
+					if thisDist < shortestDistance then
+						local MunsterDistance = (v.Position - Munster.Humanoid.RootPart.Position).Magnitude --makes sure the munster isn't in the way cause that would be kind of dumb
+						if MunsterDistance > shortestDistance then
+							shortestDistance = thisDist
+							walkToPart = v
+						end
+					end
+				end
+			end
+			
+			for i, v in pairs(Mall.Shops:GetDescendants()) do --loops through shops and checks which one is closest
+				if v.Name == "AreaZone" and v:IsA("BasePart") then
+					local pos1 = v:GetClosestPointOnSurface(followerHumanoid.RootPart.Position)
+					local pos2 = followerHumanoid.RootPart:GetClosestPointOnSurface(v.Position)
+					local thisDist = (pos1 - pos2).Magnitude
+					
+					if thisDist < shortestDistance then
+						shortestDistance = thisDist
+						walkToPart = v
+					end
+				end
+			end
+			
+			local success, Error = pcall(function() --makes a path to get there
+				Path:ComputeAsync(followerHumanoid.RootPart.Position, walkToPart.Position)
+			end)
+			
+			if success then
+				for _, waypoint in Path:GetWaypoints() do
+					followerHumanoid:MoveTo(waypoint.Position)
+					followerHumanoid.MoveToFinished:Wait()
+				end
+				
+				if walkToPart.Name == "HidingSpot" then --if the closest thing was a hiding spot the NPC jumps into it
+					followerHumanoid:PivotTo(walkToPart.CFrame)
+					followerHumanoid:SetAttribute("Hiding", true)
+					walkToPart:SetAttribute("Occupied", true)
+				end
+				
+				while true do --waits until the munster is a good distance away before returning to the player
+					local distance = (Munster.Humanoid.RootPart.Position - followerHumanoid.RootPart.Position).Magnitude
+					if distance >= 60 then
+						break
+					else
+						wait(0.5)
+					end
+				end
+			end
+		elseif not plrReference:GetAttribute("Hiding") then --regular movement pattern
+			if follwer:GetAttribute("Hiding") then --if the NPC is hiding comes out of the hiding spot
+				follwer:GetAttribute("Hiding"):Get():SetAttribute("Occupied", false)
+				follwer:SetAttribute("Hiding", nil)
+				
+				local success, Error = pcall(function()
+					Path:ComputeAsync(followerHumanoid.RootPart.Position, playerHumanoid.RootPart.Position)
+				end)
+				
+				if success then
+					for _, waypoint in Path:GetWaypoints() do
+						followerHumanoid:MoveTo(waypoint.Position)
+						followerHumanoid.MoveToFinished:Wait()
+						
+						local difference = (playerHumanoid.RootPart.Position - followerHumanoid.RootPart.Position).Magnitude
+						if difference <= 7.5 then --if the NPC comes close to the player before finishing their path stops
+							break
+						end
+					end
+				end
+				
+				print("success!!!")
+			end
+			
+			local difference = (playerHumanoid.RootPart.Position - followerHumanoid.RootPart.Position).Magnitude
+			if difference > 40 then --if the NPC is far enough from the player pathfinds to them to ensure avoidence of obstacles
+				local success, Error = pcall(function()
+					Path:ComputeAsync(followerHumanoid.RootPart.Position, playerHumanoid.RootPart.Position)
+				end)
+				
+				if success then
+					for potato, waypoint in Path:GetWaypoints() do --debug path drawing
+						local newPart = Instance.new("Part", workspace)
+						newPart.Name = tostring(potato)
+						newPart.Position = waypoint.Position
+						newPart.Size = Vector3.new(1, 1, 1)
+						newPart.Anchored = true
+					end
+					
+					for potato, waypoint in Path:GetWaypoints() do
+						followerHumanoid:MoveTo(waypoint.Position)
+						followerHumanoid.MoveToFinished:Wait()
+						
+						workspace:FindFirstChild(tostring(potato)):Destroy()
+						
+						difference = (playerHumanoid.RootPart.Position - followerHumanoid.RootPart.Position).Magnitude
+						if difference <= 7.5 then --if the NPC comes close to the player before finishing their path stops
+							break
+						end
+					end
+				else
+					warn(Error)
+				end
+			elseif difference > 7.5 then --if the NPC is a short distance from the player gets closer to them
+				followerHumanoid:MoveTo(playerHumanoid.RootPart.Position)
+			else
+				if followerHumanoid.WalkToPoint ~= followerHumanoid.RootPart.Position then --if the NPC is pretty close to the player stops before running into them
+					followerHumanoid:MoveTo(followerHumanoid.RootPart.Position)
+				end
+			end
+		elseif not follwer:GetAttribute("Hiding") then --handles hiding
+			local closestHidingSpot
+			local distance = 10000000
+			for i, v in pairs(workspace.Mall.Scenario.SpecialStuff:GetChildren()) do --finds closest available hiding spot
+				if v.Name == "HidingSpot" and v:GetAttribute("Occupied") == false then
+					print(v:GetAttribute("Occupied"))
+					local thisDist = (v.Position - followerHumanoid.RootPart.Position).Magnitude
+					if thisDist < distance then
+						distance = thisDist
+						closestHidingSpot = v
+					end
+				end
+			end
+			
+			local success, Error = pcall(function()
+				Path:ComputeAsync(followerHumanoid.RootPart.Position, closestHidingSpot.Position)
+			end)
+			
+			if success then --runs to the closest hiding spot
+				for _, waypoint in Path:GetWaypoints() do
+					followerHumanoid:MoveTo(waypoint.Position)
+					followerHumanoid.MoveToFinished:Wait()
+					
+					if not plrReference:GetAttribute("Hiding") then --if the player suddenly comes out of hiding the NPC stops
+						break
+					end
+				end
+				
+				if plrReference:GetAttribute("Hiding") then --makes sure they're still hiding before hopping into the hiding spot
+					follwer:PivotTo(closestHidingSpot.CFrame)
+					follwer:SetAttribute("Hiding", closestHidingSpot)
+					closestHidingSpot:SetAttribute("Occupied", true)
+				end
 			end
 		end
 		
-		if shouldStop then
+		if shouldStop then --when the NPC no longer needs to follow the player stops following them cause its kinda supposed to do that :|
 			break
 		end
 	end
