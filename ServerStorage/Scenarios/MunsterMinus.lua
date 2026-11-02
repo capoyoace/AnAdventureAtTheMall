@@ -14,7 +14,7 @@ local StopLounging = ServerStorage.Events.CancelLounge
 local CutsceneManager = ServerStorage.Events.CutsceneManager
 
 MunsterMinus.ObjectivesList = { --List of scenario objectives. Note the decimals; if you fail one objective, it adds a decimal place to the next one.
-	[1] = {Type = "AskAround", DisplayInfo = "Check if everyone is okay.", AskType = "InformationBased", Number = 3, Completed = 0},
+	[1] = {Type = "AskAround", DisplayInfo = "Check if everyone is okay.", AskType = "InformationBased", Quantity = 3, Completed = 0},
 	[2] = {Type = "FindNPC", DisplayInfo = "Figure out some sort of game plan with the security officer in the %s.", Modifier = "loc", loc = "", Specifications = {"NPCType", "SecurityGuard"}},
 	[3] = {Type = "LocateArea", DisplayInfo = "Head to the armory... quietly.", Quantity = 1, Objects = {}, Followers = {}, AreaLocations = {
 		[1] = {}
