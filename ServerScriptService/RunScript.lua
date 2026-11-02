@@ -9,6 +9,9 @@ local RequestHide = ReplicatedStorage.Remotes.ActivateHiding
 local ActivateHiding = ServerStorage.Events.ActivateHiding
 local CutsceneServer = ServerStorage.Events.CutsceneManager
 local CutsceneClient = ReplicatedStorage.Remotes.CutsceneManager
+local CrouchEvent = ReplicatedStorage.Remotes.CrouchEvent
+local StartEvent = ReplicatedStorage.Remotes.StartRound
+local RequestRejoin = ReplicatedStorage.Remotes.RequestRejoin
 
 _G.PlayersData = { --sets up the server data
 	RunInformation = {
@@ -93,8 +96,10 @@ local function ForceShops(RequiredShopList) --if the scenario requires some shop
 	end
 	
 	local function doThis(RandomShopToDestroy, i, v) --a function to replace an existing shop with a required one
+		print(RandomShopToDestroy.Name)
 		local newShop = ServerStorage.Shops:FindFirstChild(v)[RandomShopToDestroy:GetAttribute("Size")]:Clone()
-		newShop:PivotTo(RandomShopToDestroy.PrimaryPart.CFrame)
+		newShop:PivotTo(RandomShopToDestroy.Floor.CFrame)
+		newShop.Parent = TheMall.Shops
 		RandomShopToDestroy:Destroy()
 		table.remove(SpawnedShops, i)
 		warn("Successfully replaced shop!!!!")
@@ -112,6 +117,7 @@ local function ForceShops(RequiredShopList) --if the scenario requires some shop
 		if not found then --checks whether or not the shop actually exists
 			local RandomShopToDestroy = SpawnedShops[math.random(1, #SpawnedShops)] --grabs random spawned shop
 			if not table.find(RequiredShopList, v) then --makes sure the shop chosen isn't a required one
+				RandomShopToDestroy = TheMall.Shops:FindFirstChild(RandomShopToDestroy.Name)
 				doThis(RandomShopToDestroy, i, v)
 			else
 				while true do --chooses a shop that isn't required (if necessary)
@@ -119,6 +125,7 @@ local function ForceShops(RequiredShopList) --if the scenario requires some shop
 					if not table.find(RequiredShopList, v) then
 						break
 					end
+					RandomShopToDestroy = TheMall.Shops:FindFirstChild(RandomShopToDestroy.Name)
 					doThis(RandomShopToDestroy, i, v)
 				end
 			end
@@ -137,16 +144,16 @@ Players.PlayerAdded:Connect(function(player)
 		local scenario = teleportData.Scenario
 		local partySize = teleportData.PartySize
 		
-		ScenarioModule = require(Scenarios:FindFirstChild(scenario))
+		--[[ScenarioModule = require(Scenarios:FindFirstChild(scenario))
 		PartySize = partySize
 		
 		if ScenarioModule.RequiredShops then
 			task.spawn(function()
 				ForceShops(ScenarioModule.RequiredShops)
 			end)
-		end
+		end]]
 		
-		_G.PlayersData.RunInformation.Scenario = scenario
+		--_G.PlayersData.RunInformation.Scenario = scenario
 	end
 	
 	local data
@@ -154,14 +161,36 @@ Players.PlayerAdded:Connect(function(player)
 	
 	player:SetAttribute("InDialogue", false)
 	player:SetAttribute("Zone", "")
+	player:SetAttribute("Crouching", false)
+	
+	player:LoadCharacterAsync()
 	
 	--here we'll load in the player's class and starting items and such
 	print(_G.PlayersData)
 	
 	JoinedPlayers += 1
 	if JoinedPlayers == PartySize then --checks if all players have loaded in, and if so starts the preparation phase
-		StartPrepPhase()
+		--StartPrepPhase()
 	end
+end)
+
+StartEvent.OnServerEvent:Connect(function(player, scenario, option1, option2) --NOTE THIS FUNCTION IS FOR TESTING ONLY
+	_G.PlayersData.RunInformation.Scenario = scenario
+	ScenarioModule =  require(Scenarios:FindFirstChild(scenario))
+	
+	if ScenarioModule.RequiredShops then
+		task.spawn(function()
+			ForceShops(ScenarioModule.RequiredShops)
+		end)
+	end
+	
+	player:SetAttribute("SuperSpeed", option1)
+	
+	if scenario == "MunsterMinus" then
+		player:SetAttribute("Invulnerable", option2)
+	end
+	
+	StartPrepPhase()
 end)
 
 CompleteObjective.Event:Connect(function(Number) --handles when objectives are completed
@@ -221,6 +250,9 @@ for i, v in pairs(TheMall.Shops:GetChildren()) do --handles area zones
 						if player and not table.find(PossiblePlayers, player) then
 							table.insert(PossiblePlayers, player)
 							player:SetAttribute("Zone", v.Name)
+						elseif part.Parent:GetAttribute("NPCType") and part.Parent:GetAttribute("NPCType") == "SecurityGuard" then
+							table.insert(PossiblePlayers, part.Parent)
+							part.Parent:SetAttribute("Zone", v.Name)
 						end
 					end
 
@@ -243,6 +275,7 @@ ActivateHiding.Event:Connect(function()
 			v.Triggered:Connect(function(player)
 				if not player:GetAttribute("Hiding") then
 					player.Character:PivotTo(v.Parent.CFrame)
+					v.Parent:SetAttribute("Occupied", true)
 					player:SetAttribute("Hiding", v.Parent)
 					RequestHide:FireClient(player)
 				end
@@ -256,8 +289,21 @@ RequestHide.OnServerEvent:Connect(function(player, hidingSpot, hidingOption)
 	
 	character:PivotTo(hidingSpot.CFrame * CFrame.new(0, 5, 0))
 	player:SetAttribute("Hiding", nil)
+	hidingSpot:SetAttribute("Occupied", false)
 end)
 
 CutsceneServer.Event:Connect(function(stuff)
 	CutsceneClient:FireAllClients(stuff)
+end)
+
+CrouchEvent.OnServerEvent:Connect(function(player, isCrouching)
+	player:SetAttribute("Crouching", isCrouching)
+end)
+
+RequestRejoin.OnServerEvent:Connect(function(player, id)
+	if id ~= "kick" then
+		TeleportService:TeleportAsync(id, {player})
+	else
+		player:Kick("You decided to stop playing. Pls don't reject project D:")
+	end
 end)
