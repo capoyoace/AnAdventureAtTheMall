@@ -182,14 +182,23 @@ Objectives.StartObjective = function(Number, Objective)
 					objectiveWon = true
 				end
 			end)
-		elseif Objective.AskType == "InformationBased" then
-			local Needed = Objective.Number
+		elseif Objective.AskType == "InformationBased" then --if you need to ask around just for information handles that
+			local Needed = Objective.Quantity
 			
-			connection = ObjectiveDialogue.Event:Connect(function()
-				Completed += 1
-				if Completed >= Needed then
-					CompleteObjective:Fire(Number)
-					connection:Disconnect()
+			local talkedTo = {} --here's a table to store the NPCs you've already talked to
+			
+			connection = ObjectiveDialogue.Event:Connect(function(NPC)
+				if not table.find(talkedTo, NPC) then --makes sure you haven't talked to this NPC before awarding you a completed point
+					Completed += 1
+					table.insert(talkedTo, NPC)
+					if Completed >= Needed then
+						CompleteObjective:Fire(Number)
+						connection:Disconnect()
+					else
+						for _, player in Players:GetPlayers() do
+							UpdateObjective:FireClient(player, Objective, Number, Completed)
+						end
+					end
 				end
 			end)
 		end
