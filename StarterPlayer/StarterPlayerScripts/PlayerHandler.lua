@@ -13,6 +13,7 @@ local UpdateObjective = ReplicatedStorage.Remotes.UpdateObjective
 local FreezePlayer = ReplicatedStorage.Remotes.FreezePlayer
 local ActivateHiding = ReplicatedStorage.Remotes.ActivateHiding
 local CutsceneManager = ReplicatedStorage.Remotes.CutsceneManager
+local CrouchEvent = ReplicatedStorage.Remotes.CrouchEvent
 
 local ObjectiveDisplay = PlayerGui:WaitForChild("ObjectiveDisplay")
 
@@ -64,19 +65,31 @@ end)
 
 InputService.InputBegan:Connect(function(input)
 	if input.KeyCode == Enum.KeyCode.LeftShift or input.KeyCode == Enum.KeyCode.LeftControl then
-		player.Character.Humanoid.WalkSpeed = 100
+		if player:GetAttribute("Crouching") == false and player:GetAttribute("SuperSpeed") == true then
+			player.Character.Humanoid.WalkSpeed = 100
+		end
 	elseif input.KeyCode == Enum.KeyCode.Space then
 		if player:GetAttribute("Hiding") then
 			ActivateHiding:FireServer(player:GetAttribute("Hiding"):Get(), false)
 			Freeze(false)
 			player.PlayerGui.ObjectiveDisplay.HelpfulInformation.Visible = false
 		end
+	elseif input.KeyCode == Enum.KeyCode.C then
+		if player:GetAttribute("Crouching") == false then
+			player.Character.Humanoid.WalkSpeed = 10
+			CrouchEvent:FireServer(true)
+		else
+			player.Character.Humanoid.WalkSpeed = 20
+			CrouchEvent:FireServer(false)
+		end
 	end
 end)
 
 InputService.InputEnded:Connect(function(input)
 	if input.KeyCode == Enum.KeyCode.LeftShift or input.KeyCode == Enum.KeyCode.LeftControl then
-		player.Character.Humanoid.WalkSpeed = 20
+		if player:GetAttribute("Crouching") == false and player:GetAttribute("SuperSpeed") == true then
+			player.Character.Humanoid.WalkSpeed = 20
+		end
 	end
 end)
 
@@ -91,4 +104,12 @@ CutsceneManager.OnClientEvent:Connect(function(dataTable) --issue with receiving
 	else
 		warn("what the actual heck")
 	end
+end)
+
+player.CharacterAppearanceLoaded:Connect(function(character)
+	character.Humanoid:GetPropertyChangedSignal("Health"):Connect(function()
+		if character.Humanoid.Health <= 0 then
+			player.PlayerGui.DeathScreen.Enabled = true
+		end
+	end)
 end)
