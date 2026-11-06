@@ -4,6 +4,9 @@ local TeleportService = game:GetService("TeleportService")
 local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+
+local MallComps = require(ServerStorage.Tasks.MallCompsHandler)
 
 local RequestHide = ReplicatedStorage.Remotes.ActivateHiding
 local ActivateHiding = ServerStorage.Events.ActivateHiding
@@ -176,12 +179,16 @@ end)
 
 StartEvent.OnServerEvent:Connect(function(player, scenario, option1, option2) --NOTE THIS FUNCTION IS FOR TESTING ONLY
 	_G.PlayersData.RunInformation.Scenario = scenario
-	ScenarioModule =  require(Scenarios:FindFirstChild(scenario))
+	if scenario ~= "NoScenario" then
+		ScenarioModule =  require(Scenarios:FindFirstChild(scenario)) 
+	end
 	
-	if ScenarioModule.RequiredShops then
-		task.spawn(function()
-			ForceShops(ScenarioModule.RequiredShops)
-		end)
+	if ScenarioModule then
+		if ScenarioModule.RequiredShops then
+			task.spawn(function()
+				ForceShops(ScenarioModule.RequiredShops)
+			end)
+		end
 	end
 	
 	player:SetAttribute("SuperSpeed", option1)
@@ -190,7 +197,9 @@ StartEvent.OnServerEvent:Connect(function(player, scenario, option1, option2) --
 		player:SetAttribute("Invulnerable", option2)
 	end
 	
-	StartPrepPhase()
+	if scenario ~= "NoScenario" then
+		StartPrepPhase()
+	end
 end)
 
 CompleteObjective.Event:Connect(function(Number) --handles when objectives are completed
@@ -206,13 +215,57 @@ CompleteObjective.Event:Connect(function(Number) --handles when objectives are c
 end)
 
 for i, v in pairs(CollectionService:GetTagged("Elevator")) do --handles elevator movement
-	v.Up.ClickDetector.MouseClick:Connect(function(player)
-		player.Character.HumanoidRootPart.CFrame = player.Character.HumanoidRootPart.CFrame * CFrame.new(0, v:GetAttribute("TPDiff"), 0)
+	local movingSection = v.MovingSection
+	local OpenUp = v.OpenUp
+	local OpenDown = v.OpenDown
+	
+	OpenUp.ClickDetector.MouseClick:Connect(function()
+		MallComps.ElevatorOpen(v, "Lower")
 	end)
 	
-	v.Down.ClickDetector.MouseClick:Connect(function(player)
-		player.Character.HumanoidRootPart.CFrame = player.Character.HumanoidRootPart.CFrame * CFrame.new(0, -v:GetAttribute("TPDiff"), 0)
+	OpenDown.ClickDetector.MouseClick:Connect(function()
+		MallComps.ElevatorOpen(v, "Upper")
 	end)
+	
+	movingSection.Open.ClickDetector.MouseClick:Connect(function()
+		MallComps.ElevatorOpen(v, v:GetAttribute("Position"))
+	end)
+	
+	movingSection.Level.ClickDetector.MouseClick:Connect(function()
+		MallComps.ElevatorLevelChange(v, v:GetAttribute("Position"))
+	end)
+	
+	for j, k in pairs(v:GetChildren()) do
+		if k.Name == "Display" then
+			local Display = k.SurfaceGui.TextLabel :: TextLabel
+			
+			local function getText(level, moving)
+				if level == "Upper" then
+					if moving then
+						return "2▼"
+					else
+						return "2"
+					end
+				else
+					if moving then
+						return "1▲"
+					else
+						return "1"
+					end
+				end
+			end
+			
+			Display.Text = getText(v:GetAttribute("Position"))
+			
+			v:GetAttributeChangedSignal("Position"):Connect(function()
+				Display.Text = getText(v:GetAttribute("Position"), false)
+			end)
+			
+			v:GetAttributeChangedSignal("Moving"):Connect(function()
+				Display.Text = getText(v:GetAttribute("Position"), true)
+			end)
+		end
+	end
 end
 
 for i, v in pairs(CollectionService:GetTagged("LockedDoor")) do --handles locked doors
