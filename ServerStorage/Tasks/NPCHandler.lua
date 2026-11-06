@@ -6,6 +6,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local PathfindingService = game:GetService("PathfindingService")
 local ProximityPromptService = game:GetService("ProximityPromptService")
 local Players = game:GetService("Players")
+local CollectionService = game:GetService("CollectionService")
 
 local ObjectiveDialogue = ServerStorage.Events.ObjectiveDialogue
 local MunsterHearing = ReplicatedStorage.Remotes.MunsterHearing
@@ -238,12 +239,12 @@ NPCHandler.Lounge = function(NPC) --Handles NPC moving around the mall
 	local upCost = 1
 	local downCost = 1
 	if NPC.Humanoid.RootPart.Position.Y > 15 then --makes sure the NPC avoids using improper escalators depending on which floor its on
-		upCost = 10
+		upCost = 20
 	else
-		downCost = 10
+		downCost = 20
 	end
 	
-	local GigaPath = PathfindingService:CreatePath({AgentCanJump = false, AgentRadius = 3, Costs = {Up = upCost, Down = downCost, Outside = 20}})
+	local GigaPath = PathfindingService:CreatePath({AgentCanJump = false, AgentRadius = 3, Costs = {Up = upCost, Down = downCost, Outside = 20, DONTGOHERE = 20}})
 	
 	local shouldStop = false
 	local cancelLounge = false
@@ -267,7 +268,36 @@ NPCHandler.Lounge = function(NPC) --Handles NPC moving around the mall
 			
 			local function continue()
 				for _, waypoint in pairs(GigaPath:GetWaypoints()) do
-					Humanoid:MoveTo(waypoint.Position)
+					if waypoint.Label == "UseElevator" then
+						local ClosestElevator
+						local distance = 1000000000
+						
+						if Humanoid.RootPart.Position.Y >= 32 then --test this elevator stuff
+							for i, v in CollectionService:GetTagged("Elevator") do
+								local thisDist = (Humanoid.RootPart.Position - v.Down.Position).Magnitude
+								if thisDist < distance then
+									distance = thisDist
+									ClosestElevator = v
+								end
+							end
+							
+							Humanoid.RootPart.CFrame = ClosestElevator.Up.LinkAttachment1.WorldCFrame
+						else
+							for i, v in CollectionService:GetTagged("Elevator") do
+								local thisDist = (Humanoid.RootPart.Position - v.Up.Position).Magnitude
+								if thisDist < distance then
+									distance = thisDist
+									ClosestElevator = v
+								end
+							end
+							
+							Humanoid.RootPart.CFrame = ClosestElevator.Down.LinkAttachment2.WorldCFrame
+						end
+						
+						Humanoid:MoveTo(Humanoid.RootPart.Position)
+					else
+						Humanoid:MoveTo(waypoint.Position)
+					end
 					
 					if cancelLounge then
 						if Humanoid then
@@ -295,6 +325,10 @@ NPCHandler.Lounge = function(NPC) --Handles NPC moving around the mall
 				continue()
 			else
 				warn(Error)
+			end
+			
+			if cancelLounge then
+				break
 			end
 		end
 	end
@@ -605,19 +639,9 @@ NPCHandler.FollowPlayer = function(follwer, player) --handles NPCs following the
 				end)
 				
 				if success then
-					for potato, waypoint in Path:GetWaypoints() do --debug path drawing
-						local newPart = Instance.new("Part", workspace)
-						newPart.Name = tostring(potato)
-						newPart.Position = waypoint.Position
-						newPart.Size = Vector3.new(1, 1, 1)
-						newPart.Anchored = true
-					end
-					
-					for potato, waypoint in Path:GetWaypoints() do
+					for _, waypoint in Path:GetWaypoints() do
 						followerHumanoid:MoveTo(waypoint.Position)
 						followerHumanoid.MoveToFinished:Wait()
-						
-						workspace:FindFirstChild(tostring(potato)):Destroy()
 						
 						difference = (playerHumanoid.RootPart.Position - followerHumanoid.RootPart.Position).Magnitude
 						if difference <= 7.5 then --if the NPC comes close to the player before finishing their path stops
