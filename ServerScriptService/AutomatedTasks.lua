@@ -52,3 +52,26 @@ for i, v in pairs(game:GetService("ServerStorage").Shops:GetDescendants()) do --
 		v.Anchored = true
 	end
 end
+
+for i, v in pairs(workspace.Mall.Structure.SpecialThings.EscalatorPair2.DownEscalator.Structure:GetChildren()) do
+	if v.Name == "Railing" then
+		v.Size = Vector3.new(v.Size.X, v.Size.Y + 2, v.Size.Z)
+	end
+end
+
+for i, v in pairs(workspace.Mall.Structure.SpecialThings:GetDescendants()) do
+	if v.Name == "Railing" then
+		local newPathfindingThing = Instance.new("PathfindingModifier", v)
+		newPathfindingThing.Label = "DONTGOHERE"
+	end
+end
+
+local TweenService = game:GetService("TweenService") --go ahead and continue to make this new spicy elevator work :DDDDD
+local tweenInfo = TweenInfo.new(2, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut)
+TweenService:Create(workspace.Mall.Structure.SpecialThings.Elevator2.RDoor, tweenInfo, {Size = Vector3.new(3, 10.4, 0.5), CFrame = CFrame.new(254.5, 6.2, 172.25)}):Play()
+TweenService:Create(workspace.Mall.Structure.SpecialThings.Elevator2.LDoor, tweenInfo, {Size = Vector3.new(3, 10.4, 0.5), CFrame = CFrame.new(254.5, 6.2, 156.15)}):Play()
+
+task.wait(5)
+
+TweenService:Create(workspace.Mall.Structure.SpecialThings.Elevator2.RDoor, tweenInfo, {Size = Vector3.new(3, 10.4, 8.3), CFrame = CFrame.new(254.5, 6.2, 168.35)}):Play()
+TweenService:Create(workspace.Mall.Structure.SpecialThings.Elevator2.LDoor, tweenInfo, {Size = Vector3.new(3, 10.4, 8.3), CFrame = CFrame.new(254.5, 6.2, 160.05)}):Play()
