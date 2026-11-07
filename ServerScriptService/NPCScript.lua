@@ -2,6 +2,7 @@
 local ServerStorage = game:GetService("ServerStorage")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local PhysicsService = game:GetService("PhysicsService")
+local CollectionService = game:GetService("CollectionService")
 
 local NPCHandler = require(ServerStorage.Tasks.NPCHandler)
 
@@ -32,8 +33,7 @@ end
 
 task.wait(0.5)
 
-for i, v in NPCs:GetChildren() do
-	local NPC = v
+for _, NPC in NPCs:GetChildren() do
 	local root = NPC.Humanoid.RootPart :: BasePart
 	
 	for _, part in ipairs(NPC:GetDescendants()) do
@@ -68,6 +68,16 @@ for i, v in NPCs:GetChildren() do
 			end
 
 			NPCHandler.Talk(player, NPC, bondLevel) --uses the NPC module to handle dialogue
+		end
+	end)
+end
+
+for _, NPC in pairs(CollectionService:GetTagged("Shopkeeper")) do
+	NPC.Torso.ProximityPrompt.Triggered:Connect(function(player)
+		if player:GetAttribute("InDialogue") == false then
+			NPC.Torso.ProximityPrompt.Enabled = false
+			
+			NPCHandler.Talk(player, NPC, "Unbondable")
 		end
 	end)
 end
