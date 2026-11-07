@@ -15,7 +15,7 @@ Dialogue.PreScenario = { --The hierarchy follows this pattern: Dialogue breed ->
 			[1] = {Type = "Respond", Speech = "Hey there buddy. How's it going?", Responses = {
 					[1] = "I'm doing fine.",
 					[2] = "ABSOLUTELY INCREDIBLE!!!! UwU",
-					[3] = "You smell like piss."
+					[3] = "You smell funny."
 				}
 			},
 			[2] = {Index = 1, Type = "Next",  Speech = "Good for you there bud."},
@@ -913,6 +913,20 @@ Dialogue.MunsterMinus = {
 	["Normal Dude"] = {
 		[1] = {
 			[0] = {
+				[1] = {Type = "Next", Speech = "Hurrrrrrgghhhhhh....."},
+				[2] = {Type = "Close"}
+			},
+			[1] = {
+				[1] = {Type = "Next", Speech = "Blaaaaarrrrghhhhh......"},
+				[2] = {Type = "Close"}
+			},
+			[-1] = {
+				[1] = {Type = "Next", Speech = "Eeueuuuuuuugghghghhhhh......"},
+				[2] = {Type = "Close"}
+			}
+		},
+		[2] = {
+			[0] = {
 				[1] = {Type = "Respond", Speech = "Arrrrrgghhh.... my headddddd...", Responses = {
 					[1] = "Are you okay????"
 				}},
@@ -938,7 +952,7 @@ Dialogue.MunsterMinus = {
 				[4] = {Index = 1, Type = "Close"}
 			}
 		},
-		[2] = {
+		[3] = {
 			[0] = {
 				[1] = {Type = "Next", Speech = "Unnnghhh... my head hurts....."},
 				[2] = {Type = "Next", Speech = "Who even let that thing in?? Where did it come from??"},
@@ -964,6 +978,20 @@ Dialogue.MunsterMinus = {
 	},
 	["Shopaholic"] = {
 		[1] = {
+			[0] = {
+				[1] = {Type = "Next", Speech = "wwwaaaaaaaaaaghghhhhhhh......"},
+				[2] = {Type = "Close"}
+			},
+			[1] = {
+				[1] = {Type = "Next", Speech = "fajsdklfjsalkfjslakdjf;asld....."},
+				[2] = {Type = "Close"}
+			},
+			[-1] = {
+				[1] = {Type = "Next", Speech = "gruuuuuuuuhhhhhhh...."},
+				[2] = {Type = "Close"}
+			}
+		},
+		[2] = {
 			[0] = {
 				[1] = {Type = "Respond", Speech = "my poor little headddddddddddddddddddd...", Responses = {
 					[1] = "Are you okay???"
