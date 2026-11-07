@@ -237,7 +237,7 @@ Objectives.StartObjective = function(Number, Objective)
 	elseif Objective.Type == "FindNPC" then --if the player needs to find a certain NPC handles that
 		local Specs = Objective.Specifications
 		if Specs[1] == "SpecificNPC" then --Tags the NPC in question
-			--find the specific NPC here
+			Objective.Specifications[2]:AddTag("NPCToFind")
 		elseif Specs[1] == "NPCType" then
 			local EligibleNPCs = {}
 			
@@ -293,6 +293,15 @@ Objectives.StartObjective = function(Number, Objective)
 						KeyObject:Destroy()
 						CompleteObjective:Fire(Number)
 					end
+				end
+			end)
+		end
+	elseif Objective.Type == "PickupItem" then
+		for _, player in Players:GetPlayers() do
+			connection = player.Backpack.ChildAdded:Connect(function(child)
+				if child == Objective.Item then
+					CompleteObjective:Fire(Number)
+					connection:Disconnect()
 				end
 			end)
 		end
