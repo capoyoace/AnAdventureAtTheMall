@@ -14,23 +14,25 @@ local StopLounging = ServerStorage.Events.CancelLounge
 local CutsceneManager = ServerStorage.Events.CutsceneManager
 
 MunsterMinus.ObjectivesList = { --List of scenario objectives. Note the decimals; if you fail one objective, it adds a decimal place to the next one.
-	[1] = {Type = "AskAround", DisplayInfo = "Check if everyone is okay.", AskType = "InformationBased", Quantity = 3, Completed = 0},
-	[2] = {Type = "FindNPC", DisplayInfo = "Figure out some sort of game plan with the security officer in the %s.", Modifier = "loc", loc = "", Specifications = {"NPCType", "SecurityGuard"}},
-	[3] = {Type = "LocateArea", DisplayInfo = "Head to the armory... quietly.", Quantity = 1, Objects = {}, Followers = {}, AreaLocations = {
+	[1] = {Type = "FindNPC", DisplayInfo = "Talk to the shopkeeper... find out what's going on...", Specifications = {"SpecificNPC", Instance}},
+	[2] = {Type = "AskAround", DisplayInfo = "Check if everyone is okay.", AskType = "InformationBased", Quantity = 3, Completed = 0},
+	[3] = {Type = "FindNPC", DisplayInfo = "Alright... talk to the shopkeeper again. He should give you more info now.", Specifications = {"SpecificNPC", Instance}, Modifier = "loc", loc = ""},
+	[4] = {Type = "FindNPC", DisplayInfo = "Figure out some sort of game plan with the security officer in the %s.", Modifier = "loc", loc = "", Specifications = {"NPCType", "SecurityGuard"}},
+	[5] = {Type = "LocateArea", DisplayInfo = "Head to the armory... quietly.", Quantity = 1, Objects = {}, Followers = {}, AreaLocations = {
 		[1] = {}
 	}},
-	[4] = {Type = "CollectItem", DisplayInfo = "Talk to the shopkeeper. See if you can borrow something.", Item = "", ItemType = "NPC"},
-	[5] = {Type = "DefeatEnemies", DisplayInfo = "Take out the munster.", Quantity = 1, Enemies = {}},
-	[6] = {Type = "EscapeNotice", DisplayInfo = "RUN!!!!"},
-	[7] = {Type = "FindNPC", DisplayInfo = "Well, that sure didn't do jack squat. Figure something else out.", Specifications = {"NPCType", "SecurityGuard"}},
-	[8] = {Type = "LocateArea", DisplayInfo = "Head to the apothecary... even more quietly. That thing's angry now.", Quantity = 1, AreaLocations = {
+	[6] = {Type = "PickupItem", DisplayInfo = "Talk to the shopkeeper. See if you can borrow something.", Item = Instance},
+	[7] = {Type = "DefeatEnemies", DisplayInfo = "Take out the munster.", Quantity = 1, Enemies = {}},
+	[8] = {Type = "EscapeNotice", DisplayInfo = "RUN!!!!"},
+	[9] = {Type = "FindNPC", DisplayInfo = "Well, that sure didn't do jack squat. Figure something else out.", Specifications = {"NPCType", "SecurityGuard"}},
+	[10] = {Type = "LocateArea", DisplayInfo = "Head to the apothecary... even more quietly. That thing's angry now.", Quantity = 1, AreaLocations = {
 		[1] ={}
 	}},
-	[9] = {Type = "CollectItem", DisplayInfo = "Bargain with this shopkeeper. They may be a bit... tougher.", Item = "", ItemType = "NPC"},
-	[10.1] = {Type = "DefeatEnemies", DisplayInfo = "This should deal with the monster. Stun it, then take it out.", Quantity = 1, Enemies = {}},
-	[10.2] = {Type = "ActivateItem", DisplayInfo = "Looks like the shopkeeper has to go... create a distraction.", Quantity = 1},
-	[11.2] = {Type = "CollectItem", DisplayInfo = "Quick, steal the potion!!!", Quantity = 1, Item = ""},
-	[12.2] = {Type = "DefeatEnemies", DisplayInfo = "Whew, that was close... now this should deal with the monster. Stun it, then take it out.", Quantity = 1, Enemies = {}}
+	[11] = {Type = "CollectItem", DisplayInfo = "Bargain with this shopkeeper. They may be a bit... tougher.", Item = "", ItemType = "NPC"},
+	[12.1] = {Type = "DefeatEnemies", DisplayInfo = "This should deal with the monster. Stun it, then take it out.", Quantity = 1, Enemies = {}},
+	[12.2] = {Type = "ActivateItem", DisplayInfo = "Looks like the shopkeeper has to go... create a distraction.", Quantity = 1},
+	[13.2] = {Type = "CollectItem", DisplayInfo = "Quick, steal the potion!!!", Quantity = 1, Item = ""},
+	[14.2] = {Type = "DefeatEnemies", DisplayInfo = "Whew, that was close... now this should deal with the monster. Stun it, then take it out.", Quantity = 1, Enemies = {}}
 }
 
 MunsterMinus.RequiredShops = {"Armory", "Apothecary"} --An array of shops required for the scenario. The game will always spawn these first before randomizing shops.
@@ -83,10 +85,19 @@ MunsterMinus.Trigger = function(Mall)
 	local randomShop = Mall.Shops[Mall.Shops:GetChildren()[math.random(1, #Mall.Shops:GetChildren())].Name] --gets two random shops
 	local anotherRandomShop = Mall.Shops[Mall.Shops:GetChildren()[math.random(1, #Mall.Shops:GetChildren())].Name]
 	
-	if anotherRandomShop == randomShop then --makes sure the two random shops aren't each other
-		while anotherRandomShop == randomShop do
+	if string.find(randomShop.Name, "Apothecary") or string.find(randomShop.Name, "Armory") then --makes sure the random shop isn't the armory or the apothecary
+		while string.find(randomShop.Name, "Apothecary") or string.find(randomShop.Name, "Armory") do
+			randomShop = Mall.Shops[Mall.Shops:GetChildren()[math.random(1, #Mall.Shops:GetChildren())].Name]
+			if not string.find(randomShop.Name, "Apothecary") and string.find(randomShop.Name, "Armory") then
+				break
+			end
+		end
+	end
+	
+	if anotherRandomShop == randomShop or string.find(anotherRandomShop.Name, "Apothecary") or string.find(anotherRandomShop.Name, "Armory") then --makes sure the two random shops aren't each other, and the other random shop isn't the armory/apothecary
+		while anotherRandomShop == randomShop or string.find(anotherRandomShop.Name, "Apothecary") or string.find(anotherRandomShop.Name, "Armory") do
 			anotherRandomShop = Mall.Shops[Mall.Shops:GetChildren()[math.random(1, #Mall.Shops:GetChildren())].Name]
-			if anotherRandomShop ~= randomShop then
+			if anotherRandomShop ~= randomShop and string.find(anotherRandomShop.Name, "Apothecary") and string.find(anotherRandomShop.Name, "Armory") then
 				break
 			end
 		end
@@ -144,8 +155,11 @@ MunsterMinus.Trigger = function(Mall)
 	local randomIndex = math.random(1, #possiblePositions) --gets a position for the security guard to be
 	local randomLocation = possiblePositions[randomIndex]
 	
-	MunsterMinus.ObjectivesList[2].loc = randomLocation.Parent.Name --updates the objective list based on this location and adds the security guard into the third objective
-	MunsterMinus.ObjectivesList[3].Followers[1] = securityGuard
+	MunsterMinus.ObjectivesList[1].Specifications[2] = randomShop["Shopkeeper Dude"]
+	MunsterMinus.ObjectivesList[3].Specifications[2] = randomShop["Shopkeeper Dude"]
+	MunsterMinus.ObjectivesList[3].loc = randomLocation.Parent.Name --updates the objective list based on this location and adds the security guard into the fifth objective
+	MunsterMinus.ObjectivesList[4].loc = randomLocation.Parent.Name 
+	MunsterMinus.ObjectivesList[5].Followers[1] = securityGuard
 	
 	securityGuard:PivotTo(randomLocation.CFrame) --slaps the security guard where he belongs
 	securityGuard.HumanoidRootPart.Anchored = true
@@ -157,7 +171,12 @@ MunsterMinus.Trigger = function(Mall)
 	end
 	
 	local armory = Mall.Shops:FindFirstChild("Armory")
-	MunsterMinus.ObjectivesList[3].AreaLocations[1] = {Loc = armory.AreaZone.CFrame, Radius = armory.AreaZone.Size}
+	MunsterMinus.ObjectivesList[5].AreaLocations[1] = {Loc = armory.AreaZone.CFrame, Radius = armory.AreaZone.Size}
+	
+	local newBonk = script.Bonk:Clone()
+	newBonk.Parent = armory
+	newBonk:PivotTo(armory.HammrSpawn.CFrame)
+	MunsterMinus.ObjectivesList[4].Item = newBonk
 	
 	StopLounging:Fire() --freezes all NPCs
 	
