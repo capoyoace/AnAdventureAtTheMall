@@ -20,7 +20,15 @@ NPCHandler.Talk = function(player : Player, NPC, bondLevel) --Handles talking to
 	local NPCDialogue
 	
 	local RunData = _G.PlayersData.RunInformation
-	local CurrentObjective = require(ServerStorage.Scenarios:FindFirstChild(RunData.Scenario)).ObjectivesList[RunData.Objective]
+	local CurrentObjective
+	
+	local success, Error = pcall(function()
+		CurrentObjective = require(ServerStorage.Scenarios:FindFirstChild(RunData.Scenario)).ObjectivesList[RunData.Objective]
+	end)
+	
+	if Error then
+		warn("Scenario not found.")
+	end
 	
 	if game:GetAttribute("ScenarioStarted") == false then --gets dialogue based on whether or not the scenario has started or not
 		NPCDialogue = require(ReplicatedStorage.NPCDialogue:FindFirstChild(NPCType.."Dialogue")).PreScenario[DialogueBreed]
@@ -36,7 +44,7 @@ NPCHandler.Talk = function(player : Player, NPC, bondLevel) --Handles talking to
 			print("Bond level changed for the purpose of the objective")
 		end
 		
-		if CurrentObjective.Type == "AskAround" and CurrentObjective.AskType == "KnowledgeBased" then
+		if CurrentObjective.Type == "AskAround" and CurrentObjective.AskType == "KnowledgeBased" and NPCType == "Shopper" then
 			NPCDialogue = require(ReplicatedStorage.NPCDialogue:FindFirstChild(NPCType.."Dialogue"))[RunData.Scenario][DialogueBreed][RunData.Objective][NPC:GetAttribute("InTheKnow")]
 		else
 			NPCDialogue = require(ReplicatedStorage.NPCDialogue:FindFirstChild(NPCType.."Dialogue"))[RunData.Scenario][DialogueBreed][RunData.Objective]
@@ -60,7 +68,7 @@ NPCHandler.Talk = function(player : Player, NPC, bondLevel) --Handles talking to
 		end
 	else --these are the settings during the scenario
 		if CurrentObjective.Type == "UnlockDoor" and CurrentObjective.KeyLoc == "NPC" then
-			if NPCType ~= "SecurityGuard" then
+			if NPCType == "Shopper" then
 				if NPC:HasTag("HasKey") then
 					DialogueBlock = NPCDialogue.HasKey[bondLevel]
 				else
@@ -70,21 +78,33 @@ NPCHandler.Talk = function(player : Player, NPC, bondLevel) --Handles talking to
 				DialogueBlock = NPCDialogue
 			end
 		elseif CurrentObjective.Type == "CollectItem" and CurrentObjective.ItemType == "NPC" then
-			if NPCType ~= "SecurityGuard" then
+			if NPCType == "Shopper" then
 				if NPC:HasTag(CurrentObjective.Item) then
 					DialogueBlock = NPCDialogue.HasItem[bondLevel]
 				else
 					DialogueBlock = NPCDialogue.Else[bondLevel]
 				end
-			else
+			elseif NPCType == "SecurityGuard" then
 				if NPC:HasTag(CurrentObjective.Item) then
 					DialogueBlock = NPCDialogue.HasItem
 				else
 					DialogueBlock = NPCDialogue.Else
 				end
+			else
+				DialogueBlock = NPCDialogue
+			end
+		elseif CurrentObjective.Type == "FindNPC" then
+			if NPC:HasTag("NPCToFind") then
+				DialogueBlock = NPCDialogue.NPCToFind
+			else
+				if NPCType == "Shopper" then
+					DialogueBlock = NPCDialogue[bondLevel]
+				else
+					DialogueBlock = NPCDialogue
+				end
 			end
 		else
-			if NPCType ~= "SecurityGuard" then
+			if NPCType == "Shopper" then
 				DialogueBlock = NPCDialogue[bondLevel]
 			else
 				DialogueBlock = NPCDialogue
