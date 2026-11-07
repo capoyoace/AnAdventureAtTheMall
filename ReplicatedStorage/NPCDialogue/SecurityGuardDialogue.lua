@@ -19,16 +19,18 @@ Dialogue.BlackoutMinus = {
 			[2] = {Type = "Close"}
 		},
 		[3] = {
-			[1] = {Type = "Respond", Speech = "Please keep calm. We are trying to sort out the situation.", Responses = {
-				[1] = "I've been told the power is completely out. Is this true?"
-			}},
-			[2] = {Index = 1, Type = "Respond", Speech = "...yes, that's true. Like I said, we are trying to sort out the situation. Keep calm.", Responses = {
-				[2] = "I'd like to help. Is there anything I can do??"
-			}},
-			[3] = {Index = 2, Type = "Next", Speech = "Unfortunately not. Like I said, we are..."},
-			[4] = {Index = 2, Type = "Next", Speech = "Oh, to heck with it. We're severely understaffed and help would be nice."},
-			[5] = {Index = 2, Type = "Next", Speech = "There's a backup generator we need to power on. I believe it's near the %s. Check there and see what you can do.", Modifier = "loc"},
-			[6] = {Index = 2, Type = "Close"}
+			["NPCToFind"] = {
+				[1] = {Type = "Respond", Speech = "Please keep calm. We are trying to sort out the situation.", Responses = {
+					[1] = "I've been told the power is completely out. Is this true?"
+				}},
+				[2] = {Index = 1, Type = "Respond", Speech = "...yes, that's true. Like I said, we are trying to sort out the situation. Keep calm.", Responses = {
+					[2] = "I'd like to help. Is there anything I can do??"
+				}},
+				[3] = {Index = 2, Type = "Next", Speech = "Unfortunately not. Like I said, we are..."},
+				[4] = {Index = 2, Type = "Next", Speech = "Oh, to heck with it. We're severely understaffed and help would be nice."},
+				[5] = {Index = 2, Type = "Next", Speech = "There's a backup generator we need to power on. I believe it's near the %s. Check there and see what you can do.", Modifier = "loc"},
+				[6] = {Index = 2, Type = "Close"}
+			}
 		},
 		[4] = {
 			[1] = {Type = "Next", Speech = "Have you found the generator yet? It's near the %s, remember.", Modifier = "loc"},
@@ -110,7 +112,7 @@ Dialogue.BlackoutMinus = {
 
 Dialogue.MunsterMinus = {
 	["Guard"] = {
-		[2] = {
+		[4] = {
 			[1] = {Type = "Respond", Speech = "Darn thing, infiltrating into the facility and cutting of comms... work, please! *punches his radio*", Responses = {
 				[1] = "Uh... excuse me?"
 			}},
@@ -131,28 +133,28 @@ Dialogue.MunsterMinus = {
 			[12] = {Index = 3, Type = "Next", Speech = "Great, let's go. Be careful... that thing can hear you pretty well."},
 			[13] = {Index = 3, Type = "Close"}
 		},
-		[3] = {
+		[5] = {
 			[1] = {Type = "Next", Speech = "Remember, we're heading to the armory to pick up a weapon. Let's keep it going."},
 			[2] = {Type = "Close"}
 		},
-		[4] = {
+		[6] = {
 			[1] = {Type = "Next", Speech = "Phew!! We made it!!"},
 			[2] = {Type = "Next", Speech = "Alright, let's go up to the shopkeeper. He should have something we can use against this thing."},
 			[3] = {Type = "Close"}
 		},
-		[5] = {
+		[7] = {
 			[1] = {Type = "Next", Speech = "Dang, this thing is HUGE!!! It will definitely show that munster who's boss!!"},
 			[2] = {Type = "Next", Speech = "Now all we gotta do is find it, which shouldn't be too hard. Once we spot it, rush at it and SWING!!!"},
 			[3] = {Type = "Next", Speech = "We'll carry its corpse off to the police station immediately. See what the heck it is and where the heck it came from."},
 			[4] = {Type = "Next", Speech = "You ready? Let's go."},
 			[5] = {Type = "Close"}
 		},
-		[6] = {
+		[8] = {
 			[1] = {Type = "Next", Speech = "Uh.... I don't think that quite worked..."},
 			[2] = {Type = "Next", Speech = "RUNNNNNN!!!!"},
 			[3] = {Type = "Close"}
 		},
-		[7] = {
+		[9] = {
 			[1] = {Type = "Next", Speech = "Well that was a disaster. We almost got ourselves fried."},
 			[2] = {Type = "Next", Speech = "Dangit... that was my only idea... how else are we going to take out this thing??"},
 			[3] = {Type = "Next", Speech = "...hold up. I think I have an idea."},
