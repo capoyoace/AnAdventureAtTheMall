@@ -66,6 +66,7 @@ for i, v in pairs(workspace.Mall.Structure.SpecialThings:GetDescendants()) do
 	end
 end
 
+
 local TweenService = game:GetService("TweenService") --go ahead and continue to make this new spicy elevator work :DDDDD
 local tweenInfo = TweenInfo.new(2, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut)
 TweenService:Create(workspace.Mall.Structure.SpecialThings.Elevator2.RDoor, tweenInfo, {Size = Vector3.new(3, 10.4, 0.5), CFrame = CFrame.new(254.5, 6.2, 172.25)}):Play()
@@ -75,3 +76,18 @@ task.wait(5)
 
 TweenService:Create(workspace.Mall.Structure.SpecialThings.Elevator2.RDoor, tweenInfo, {Size = Vector3.new(3, 10.4, 8.3), CFrame = CFrame.new(254.5, 6.2, 168.35)}):Play()
 TweenService:Create(workspace.Mall.Structure.SpecialThings.Elevator2.LDoor, tweenInfo, {Size = Vector3.new(3, 10.4, 8.3), CFrame = CFrame.new(254.5, 6.2, 160.05)}):Play()
+
+for i, v in pairs(game:GetService("ServerStorage").Shops:GetChildren()) do
+	if v.Name ~= "Apothecary" and v.Name ~= "Armory" then
+		for j, k in pairs(v:GetChildren()) do
+			local newNPC = workspace["Shopkeeper Dude"]:Clone()
+			newNPC.Parent = k
+			newNPC:PivotTo(k.Counter.CFrame * CFrame.new(0, -1.5, 3.1))
+		end
+	end
+end
+
+
+for i, v in pairs(game:GetService("CollectionService"):GetTagged("Shopkeeper")) do
+	v.Torso.ProximityPrompt.RequiresLineOfSight = false
+end
