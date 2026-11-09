@@ -30,6 +30,24 @@ local function Freeze(yes) --un/freezes the player
 	end
 end
 
+local function this(character)
+	warn("Initialized")
+	character.Humanoid:GetPropertyChangedSignal("Health"):Connect(function()
+		print("health changed")
+		if character.Humanoid.Health <= 0 then
+			player.PlayerGui.DeathScreen.Enabled = true
+		end
+	end)
+end
+
+if player.Character then
+	this(player.Character)
+else
+	player.CharacterAdded:Connect(function(character)
+		this(character)
+	end)
+end
+
 UpdateObjective.OnClientEvent:Connect(function(Objective, Number, Completed) --when the objective is updated, displays the info to the player
 	ObjectiveDisplay.Counter.Visible = false
 	
@@ -104,12 +122,4 @@ CutsceneManager.OnClientEvent:Connect(function(dataTable) --issue with receiving
 	else
 		warn("what the actual heck")
 	end
-end)
-
-player.CharacterAppearanceLoaded:Connect(function(character)
-	character.Humanoid:GetPropertyChangedSignal("Health"):Connect(function()
-		if character.Humanoid.Health <= 0 then
-			player.PlayerGui.DeathScreen.Enabled = true
-		end
-	end)
 end)
