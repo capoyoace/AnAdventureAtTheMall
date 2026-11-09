@@ -141,6 +141,39 @@ Dialogue.PreScenario = { --The hierarchy follows this pattern: Dialogue breed ->
 	}
 }
 
+Dialogue.RepeatedDialogue = {
+	["MunsterMinus"] = {
+		["Normal Dude"] = {
+			[0] = {
+				[1] = {Type = "Next", Speech = "Placeholder"},
+				[2] = {Type = "Close"}
+			},
+			[1] = {
+				[1] = {Type = "Next", Speech = "Placeholder"},
+				[2] = {Type = "Close"}
+			},
+			[-1] = {
+				[1] = {Type = "Next", Speech = "Placeholder"},
+				[2] = {Type = "Close"}
+			}
+		},
+		["Shopaholic"] = {
+			[0] = {
+				[1] = {Type = "Next", Speech = "placeholderrr"},
+				[2] = {Type = "Close"}
+			},
+			[1] = {
+				[1] = {Type = "Next", Speech = "placeholderrr"},
+				[2] = {Type = "Close"}
+			},
+			[-1] = {
+				[1] = {Type = "Next", Speech = "placeholderrr"},
+				[2] = {Type = "Close"}
+			}
+		}
+	}
+}
+
 Dialogue.BlackoutMinus = { --The hierarchy follows this pattern: Dialogue breed -> Objective -> Knowledge (if applicable) -> Bond
 	["Normal Dude"] = {
 		[1] = {
@@ -519,7 +552,7 @@ Dialogue.BlackoutMinus = { --The hierarchy follows this pattern: Dialogue breed 
 				[2] = {Index = 1, Type = "Next", Speech = "Woah!! You gave me a bit of a jump there!!!"},
 				[3] = {Index = 1, Type = "Respond", Speech = "Well, what's up? Making progress??", Responses = {
 					[2] = "Yeah, I need to collect more %ss. Have you seen any around here?"
-				}},
+				}, Modifier = "Item"},
 				[4] = {Index = 2, Type = "Next", Speech = "...More?? Really??"},
 				[5] = {Index = 2, Type = "Respond", Speech = "Why do you need more??", Responses = {
 					[3] = "There are more generators that I've got to activate."
@@ -842,64 +875,120 @@ Dialogue.BlackoutMinus = { --The hierarchy follows this pattern: Dialogue breed 
 				[9] = {Type = "Close"}
 			},
 			[1] = {
-				[1] = {Type = "Next", Speech = "placeholderrrrrrr"},
-				[2] = {Type = "Close"}
+				[1] = {Type = "Respond", Speech = "heyy there little guyyy how's it going with turning the lights onn", Responses = {
+					[1] = "I'm about to go turn them on!!"
+				}},
+				[2] = {Index = 1, Type = "Next", Speech = "oh my gosh reallyyyyyyyyyyy that's greattttttt"},
+				[3] = {Index = 1, Type = "Next", Speech = "well go do it then sillyyyyyyyy"},
+				[4] = {Index = 1, Type = "Close"}
 			},
 			[-1] = {
-				[1] = {Type = "Next", Speech = "placeholderrrrrrr"},
-				[2] = {Type = "Close"}
+				[1] = {Type = "Next", Speech = "the one thing that would make this so much betterrrrr"},
+				[2] = {Type = "Next", Speech = "woudl be if you weren't here go awayyyyyyyyy"},
+				[3] = {Type = "Close"}
 			}
 		},
 		[9] = {
 			[0] = {
-				[1] = {Type = "Next", Speech = "placeholderrrrrrr"},
-				[2] = {Type = "Close"}
+				[1] = {Type = "Next", Speech = "I can't wait to come home with the best excuse everrrrr"},
+				[2] = {Type = "Next", Speech = "I bet it will be so good my mom won't even believe meeeeee"},
+				[3] = {Type = "Next", Speech = "wait a second if she doesn't believe me she'll ground me"},
+				[4] = {Type = "Next", Speech = "time to get some video prooooooooofffff"},
+				[5] = {Type = "Close"}
 			},
 			[1] = {
-				[1] = {Type = "Next", Speech = "placeholderrrrrrr"},
-				[2] = {Type = "Close"}
+				[1] = {Type = "Respond", Speech = "where are the lights litte guyyyyyy", Responses = {
+					[1] = "Well... the generator powered on. The lights didn't."
+				}},
+				[2] = {Index = 1, Type = "Respond", Speech = "whattttt that's so lameeeeee", Responses = {
+					[2] = "Yeah, I'm going to bring it up with a security guard right now."
+				}},
+				[3] = {Index = 2, Type = "Next", Speech = "oh good ideaaaaaaaaaaa"},
+				[4] = {Index = 2, Type = "Next", Speech = "well if anything new comes up you know who to talk tooooooooo"},
+				[5] = {Index = 2, Type = "Close"}
 			},
 			[-1] = {
-				[1] = {Type = "Next", Speech = "placeholderrrrrrr"},
+				[1] = {Type = "Next", Speech = "broooooo leaveeeee"},
 				[2] = {Type = "Close"}
 			}
 		},
 		[10] = {
 			[0] = {
-				[1] = {Type = "Next", Speech = "placeholderrrrrrr"},
-				[2] = {Type = "Close"}
+				[1] = {Type = "Respond", Speech = "and you see here how the exits are closed toooooo", Responses = {
+					[1] = "Have you seen any keys around any of the shops?"
+				}},
+				[2] = {Index = 1, Type = "Next", Speech = "uhm excuse me can't you see I'm kind of in the middle of something"},
+				[3] = {Index = 1, Type = "Next", Speech = "don't interrupt my evidence with your silly questions"},
+				[4] = {Index = 1, Type = "Close"}
 			},
 			[1] = {
-				[1] = {Type = "Next", Speech = "placeholderrrrrrr"},
-				[2] = {Type = "Close"}
+				[1] = {Type = "Respond", Speech = "heyyyyy little guy anything newwwwww", Responses = {
+					[1] = "Yeah, I gotta get a key. Have you seen any around any shops?"
+				}},
+				[2] = {Index = 1, Type = "Next", Speech = "uhhhh no sorry I haven't"},
+				[3] = {Index = 1, Type = "Next", Speech = "I'll look around and tell you if I do thoughhhhh"},
+				[4] = {Index = 1, Type = "Close"}
 			},
 			[-1] = {
-				[1] = {Type = "Next", Speech = "placeholderrrrrrr"},
-				[2] = {Type = "Close"}
+				[1] = {Type = "Next", Speech = "ohhhhh mmyyyyyy goshhhhhhhhh"},
+				[2] = {Type = "Next", Speech = "why can't you just leave me aloneeeeeeee"},
+				[3] = {Type = "Close"}
 			}
 		},
 		[11] = {
 			[0] = {
-				[1] = {Type = "Next", Speech = "placeholderrrrrrr"},
-				[2] = {Type = "Close"}
+				[1] = {Type = "Respond", Speech = "I don't think my camera is picking up anything because it's so darkkkkkkk", Responses = {
+					[1] = "Uh... excuse me?"
+				}},
+				[2] = {Index = 1, Type = "Next", Speech = "ohhh my gosh you scared meeeeeeee"},
+				[3] = {Index = 1, Type = "Next", Speech = "if I couldn't see you then this camera definitely can't see anythinggggg"},
+				[4] = {Index = 1, Type = "Next", Speech = "what am I going to doooooooooo"},
+				[5] = {Index = 1, Type = "Next", Speech = "oh yeahhh I have a flashlight"},
+				[6] = {Index = 1, Type = "Close"}
 			},
 			[1] = {
-				[1] = {Type = "Next", Speech = "placeholderrrrrrr"},
-				[2] = {Type = "Close"}
+				[1] = {Type = "Respond", Speech = "I can't see where I'm going anymoreeeeee", Responses = {
+					[1] = "Pssst!! Hey!!!"
+				}},
+				[2] = {Index = 1, Type = "Next", Speech = "ohh heyyy little guyyyyy"},
+				[3] = {Index = 1, Type = "Respond", Speech = "did you find your little keyyyyy", Responses = {
+					[2] = "Yeah, and now I need more %ss."
+				}, Modifier = "Item"},
+				[4] = {Index = 2, Type = "Next", Speech = "wait whatttt you need moreeeeee"},
+				[5] = {Index = 2, Type = "Respond", Speech = "whyyyyyyy", Responses = {
+					[3] = "Because there are more generators I need to activate."
+				}},
+				[6] = {Index = 3, Type = "Next", Speech = "ohhhh that makes senseeeeee"},
+				[7] = {Index = 3, Type = "Next", Speech = "well good luck cause I sure don't have anyyyyyy"},
+				[8] = {Index = 3, Type = "Close"}
 			},
 			[-1] = {
-				[1] = {Type = "Next", Speech = "placeholderrrrrrr"},
-				[2] = {Type = "Close"}
+				[1] = {Type = "Responses", Speech = "where is the grounddddddd", Responses = {
+					[1] = "Uh... hello??"
+				}},
+				[2] = {Index = 1, Type = "Next", Speech = "brooooooooo you scared me so baddddddd"},
+				[3] = {Index = 1, Type = "Next", Speech = "if you do that again I am spraying you with this pepper sprayyyyy"},
+				[4] = {Index = 1, Type = "Close"}
 			}
 		},
 		[12] = {
 			[0] = {
-				[1] = {Type = "Next", Speech = "placeholderrrrrrr"},
-				[2] = {Type = "Close"}
+				[1] = {Type = "Next", Speech = "seeee this place is pitch blackkkkk"},
+				[2] = {Type = "Next", Speech = "if it weren't for this little flashlight I would probably run into all of the walllsssssss"},
+				[3] = {Type = "Next", Speech = "also you see how the exits are closeeeeeed"},
+				[4] = {Type = "Next", Speech = "they're all brokennnnnnn so this is why I'm lateeeee"},
+				[5] = {Type = "Close"}
 			},
 			[1] = {
-				[1] = {Type = "Next", Speech = "placeholderrrrrrr"},
-				[2] = {Type = "Close"}
+				[1] = {Type = "Respond", Speech = "have you found them all yet little guyyyy", Responses = {
+					[1] = "Yup, and I'm going to turn the power on now!"
+				}},
+				[2] = {Index = 1, Type = "Next", Speech = "yayyyyyyyyyyyyyyyyyy"},
+				[3] = {Index = 1, Type = "Next", Speech = "I can't wait to see againnnnnnn"},
+				[4] = {Index = 1, Type = "Next", Speech = "wait doesn't that mean the doors will open again"},
+				[5] = {Index = 1, Type = "Next", Speech = "aww mannnnnnnnn I don't get to live here anymoreeeee that's so saddddddddd"},
+				[6] = {Index = 1, Type = "Next", Speech = "you should at least wait a little longerrrrr"},
+				[7] = {Index = 1, Type = "Close"}
 			},
 			[-1] = {
 				[1] = {Type = "Next", Speech = "placeholderrrrrrr"},
@@ -964,7 +1053,7 @@ Dialogue.MunsterMinus = {
 					[1] = "Yeah, I checked on them and they seem to be alright. Everyone's head hurts, though."
 				}},
 				[2] = {Index = 1, Type = "Next", Speech = "I get that. Mine does too. I don't know why."},
-				[3] = {Index = 1, Type = "Next", Speech = "If you want to help, though, I heard there is a security officer in the %s shop. You should talk to him."},
+				[3] = {Index = 1, Type = "Next", Speech = "Well, you should go touch base with that security guard. I overheard your conversation with the shopkeeper."},
 				[4] = {Index = 1, Type = "Next", Speech = "Come check on me afterwards. My pain is ebbing away... slowly... so I think I'll be ready."},
 				[5] = {Index = 1, Type = "Next", Speech = "Good luck and be careful. That thing does not look safe."},
 				[6] = {Index = 1, Type = "Close"}
@@ -974,7 +1063,12 @@ Dialogue.MunsterMinus = {
 				[2] = {Type = "Next", Speech = "Ah, that's why. You're here. Please leave, you're worsening my pain..."},
 				[3] = {Type = "Close"}
 			}
-		}
+		},
+		[4] = Dialogue.RepeatedDialogue.MunsterMinus["Normal Dude"],
+		[5] = Dialogue.RepeatedDialogue.MunsterMinus["Normal Dude"],
+		[6] = Dialogue.RepeatedDialogue.MunsterMinus["Normal Dude"],
+		[7] = Dialogue.RepeatedDialogue.MunsterMinus["Normal Dude"],
+		[8] = Dialogue.RepeatedDialogue.MunsterMinus["Normal Dude"]
 	},
 	["Shopaholic"] = {
 		[1] = {
@@ -1017,7 +1111,34 @@ Dialogue.MunsterMinus = {
 				[4] = {Index = 1, Type = "Next", Speech = "if you wanna help my pain go awayyyyyyyy"},
 				[5] = {Index = 1, Type = "Close"}
 			}
-		}
+		},
+		[3] = {
+			[0] = {
+				[1] = {Type = "Next", Speech = "my pooorr litttlleee heaaaaaadddd"},
+				[2] = {Type = "Next", Speech = "whoever let that thing in better pay for thisssss"},
+				[3] = {Type = "Next", Speech = "he ruined my day at the malllllllll"},
+				[4] = {Type = "Close"}
+			},
+			[1] = {
+				[1] = {Type = "Respond", Speech = "is everyone else alrighttttt??", Responses = {
+					[1] = "Not really. Their heads all hurt too."
+				}},
+				[2] = {Index = 1, Type = "Next", Speech = "awwwww poor themmmm I understand thatttt"},
+				[3] = {Index = 1, Type = "Next", Speech = "I overheard you talking with the shopkeeper... you should go find that guyyyyyy"},
+				[4] = {Index = 1, Type = "Next", Speech = "the sooner we're safe the betterrerrere"},
+				[5] = {Index = 1, Type = "Close"}
+			},
+			[-1] = {
+				[1] = {Type = "Next", Speech = "urrrgghhhhh my little headdddddd"},
+				[2] = {Type = "Next", Speech = "please go away you're not helpinggggg"},
+				[3] = {Type = "Close"}
+			}
+		},
+		[4] = Dialogue.RepeatedDialogue.MunsterMinus.Shopaholic,
+		[5] = Dialogue.RepeatedDialogue.MunsterMinus.Shopaholic,
+		[6] = Dialogue.RepeatedDialogue.MunsterMinus.Shopaholic,
+		[7] = Dialogue.RepeatedDialogue.MunsterMinus.Shopaholic,
+		[8] = Dialogue.RepeatedDialogue.MunsterMinus.Shopaholic
 	}
 }
 
