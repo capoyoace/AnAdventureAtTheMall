@@ -9,6 +9,7 @@ local CollectionService = game:GetService("CollectionService")
 local UpdateObjective = ReplicatedStorage.Remotes.UpdateObjective
 local CompleteObjective = ServerStorage.Events.CompleteObjective
 local ObjectiveDialogue = ServerStorage.Events.ObjectiveDialogue
+local NPCHandlerEvent = ServerStorage.Tasks.NPCHandler.CustomizableEvent
 
 local NPCHandler = require(ServerStorage.Tasks.NPCHandler)
 
@@ -298,22 +299,39 @@ Objectives.StartObjective = function(Number, Objective)
 		end
 	elseif Objective.Type == "PickupItem" then
 		for _, player in Players:GetPlayers() do
-			connection = player.Backpack.ChildAdded:Connect(function(child)
+			connection = player.Character.ChildAdded:Connect(function(child)
+				print("player picked something up")
 				if child == Objective.Item then
 					CompleteObjective:Fire(Number)
 					connection:Disconnect()
 				end
 			end)
 		end
+	elseif Objective.Type == "StrikeEnemy" then
+		connection = NPCHandlerEvent.Event:Connect(function(items)
+			if typeof(items) == "table" then
+				if items.Reason == "StrikeEnemy" and Objective.Enemy == items.Enemy then
+					CompleteObjective:Fire(Number)
+					connection:Disconnect()
+				end
+			end
+		end)
 	else
 		warn("Objective type "..Objective.Type.." not found. Did you spell it correctly or implement it?") --warns me if the objective type wasn't found so I know something ain't working properly...
 	end
 	
 	if Objective.Followers then
 		for i, v in Objective.Followers do
-			task.spawn(function()
-				NPCHandler.FollowPlayer(v, Players:GetChildren()[1].Character)
-			end)
+			if not v:HasTag("Follower") then
+				v:AddTag("Follower")
+				task.spawn(function()
+					NPCHandler.FollowPlayer(v, Players:GetChildren()[1].Character)
+				end)
+			end
+		end
+	else
+		for i, v in CollectionService:GetTagged("Follower") do
+			v:RemoveTag("Follower")
 		end
 	end
 	
