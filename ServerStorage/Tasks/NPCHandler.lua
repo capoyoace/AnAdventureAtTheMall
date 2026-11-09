@@ -8,9 +8,12 @@ local ProximityPromptService = game:GetService("ProximityPromptService")
 local Players = game:GetService("Players")
 local CollectionService = game:GetService("CollectionService")
 
+local CustomizableEvent = script.CustomizableEvent
 local ObjectiveDialogue = ServerStorage.Events.ObjectiveDialogue
 local MunsterHearing = ReplicatedStorage.Remotes.MunsterHearing
 local StopLounging = ServerStorage.Events.CancelLounge
+local CompletedObjective = ServerStorage.Events.CompleteObjective
+local KillDialogue = ServerStorage.Events.KillDialogue
 
 local Response = script.Response
 
@@ -231,6 +234,12 @@ NPCHandler.Talk = function(player : Player, NPC, bondLevel) --Handles talking to
 					else
 						print("try harder man")
 					end
+				elseif CurrentObjective.NPC and CurrentObjective.NPC[1] == NPC then
+					if CurrentObjective.NPC[2] == "Key" then
+						player:SetAttribute("Key", CurrentObjective.NPC[3])
+					else
+						warn("weh I don't know what to do with", CurrentObjective.NPC[2])
+					end
 				end
 			end
 			
@@ -250,6 +259,26 @@ NPCHandler.Talk = function(player : Player, NPC, bondLevel) --Handles talking to
 	
 	connection = DialogueUI.NextButton.MouseButton1Up:Connect(Proceed)
 	Proceed()
+	
+	connection2 = KillDialogue.Event:Connect(function()
+		player:SetAttribute("InDialogue", false)
+		pcall(function()
+			if NPC then
+				NPC:SetAttribute("InDialouge", false)
+				NPC.HumanoidRootPart.Anchored = false
+			end
+		end)
+		connection:Disconnect()
+		connection2:Disconnect()
+		DialogueUI.Enabled = false
+		
+		wait(2)
+		pcall(function()
+			if NPC and NPC.Torso then
+				NPC.Torso.ProximityPrompt.Enabled = true
+			end
+		end)
+	end)
 end
 
 NPCHandler.Lounge = function(NPC) --Handles NPC moving around the mall
@@ -379,6 +408,10 @@ NPCHandler.MunsterAI = function(Munster : Model) --handles the munster ai
 	
 	local enraged = false
 	local expired = false
+	local bonked = false
+	local invulnerable = false
+	
+	local currentSpeed = 25
 	
 	Munster.Humanoid.RootPart:SetNetworkOwner(nil) --makes sure the munster isn't super glitchy and stuff
 	
@@ -394,18 +427,18 @@ NPCHandler.MunsterAI = function(Munster : Model) --handles the munster ai
 		
 		local Path = PathfindingService:CreatePath({AgentRadius = 3, AgentCanJump = true})
 		
-		local succes, Failure = pcall(function()
+		local success, Failure = pcall(function()
 			Path:ComputeAsync(Munster.Humanoid.RootPart.Position, point)
 		end)
 		
-		if succes then
+		if success then
 			for _, waypoint in Path:GetWaypoints() do
 				if waypoint.Action == Enum.PathWaypointAction.Jump then Munster.Humanoid.Jump = true end
 				
 				Munster.Humanoid:MoveTo(waypoint.Position)
 				Munster.Humanoid.MoveToFinished:Wait()
 				
-				if enraged then --if somebody triggers the munster, stops this loop so it can pursue them
+				if enraged or bonked then --if somebody triggers the munster, stops this loop so it can pursue them
 					break
 				end
 			end
@@ -417,7 +450,7 @@ NPCHandler.MunsterAI = function(Munster : Model) --handles the munster ai
 	local function lounge()
 		expired = false
 		while task.wait(math.random(5, 10)) do --lets the munster roam freely
-			if enraged then
+			if enraged or bonked then
 				expired = true
 				print("lounge expired")
 				break
@@ -430,6 +463,7 @@ NPCHandler.MunsterAI = function(Munster : Model) --handles the munster ai
 	local function pursuePlayer(player, character) --munster relentlessly pursues player
 		enraged = true
 		Munster.Humanoid:MoveTo(Munster.Humanoid.RootPart.Position)
+		Munster.Humanoid.WalkSpeed = currentSpeed * 1.25
 		
 		local container --chooses a "container" to assign attributes to; player vs npc
 		if not player then
@@ -472,12 +506,33 @@ NPCHandler.MunsterAI = function(Munster : Model) --handles the munster ai
 		
 		print("player has moved out of range, returning to regular movement pattern")
 		Munster.Humanoid:MoveTo(Munster.Humanoid.RootPart.Position) --returns to regular movement pattern
+		Munster.Humanoid.WalkSpeed = currentSpeed / 1.25
 		container:SetAttribute("InPursuit", false)
 		enraged = false
 		
 		if expired then
 			lounge()
 		end
+	end
+	
+	local function getBonk(player)
+		bonked = true
+		Munster.Humanoid:MoveTo(Munster.Humanoid.RootPart.Position)
+		task.wait(math.random(1, 4))
+		bonked = false
+		invulnerable = true
+		
+		if currentSpeed <= 25 then
+			currentSpeed = 35
+			CustomizableEvent:Fire({Reason = "StrikeEnemy", Enemy = Munster})
+		end
+		
+		task.spawn(function()
+			task.wait(180)
+			invulnerable = false
+		end)
+		
+		pursuePlayer(player, player.Character)
 	end
 	
 	MunsterHearing.OnServerEvent:Connect(function(player) --handles triggering munster with players
@@ -498,7 +553,6 @@ NPCHandler.MunsterAI = function(Munster : Model) --handles the munster ai
 			warn("you're lucky it didn't hear you bucko...")
 		end
 	end)
-	
 	
 	for i, v in pairs(Mall.NPCs:GetChildren()) do --handles triggering munster with NPCs
 		if v:GetAttribute("NPCType") == "SecurityGuard" then
@@ -533,6 +587,13 @@ NPCHandler.MunsterAI = function(Munster : Model) --handles the munster ai
 			end)
 		end
 	end
+	
+	CustomizableEvent.Event:Connect(function(content, player)
+		if type(content) == "string" and content == "HitMunster" and not invulnerable then
+			warn("I got hitted :(")
+			getBonk(player, player.Character)
+		end
+	end)
 	
 	lounge() --starts the munster
 end
@@ -715,8 +776,16 @@ NPCHandler.FollowPlayer = function(follwer, player) --handles NPCs following the
 		end
 		
 		if shouldStop then --when the NPC no longer needs to follow the player stops following them cause its kinda supposed to do that :|
+			print("No longer need to follow the player lol")
 			break
 		end
+		
+		connection3 = CollectionService:GetInstanceRemovedSignal("Follower"):Connect(function(thing)
+			if thing == follwer then
+				shouldStop = true
+				connection3:Disconnect()
+			end
+		end)
 	end
 end
 
