@@ -113,25 +113,27 @@ Dialogue.BlackoutMinus = {
 Dialogue.MunsterMinus = {
 	["Guard"] = {
 		[4] = {
-			[1] = {Type = "Respond", Speech = "Darn thing, infiltrating into the facility and cutting of comms... work, please! *punches his radio*", Responses = {
-				[1] = "Uh... excuse me?"
-			}},
-			[2] = {Index = 1, Type = "Next", Speech = "Eh? Who's that?"},
-			[3] = {Index = 1, Type = "Respond", Speech = "Oh, it's just a random shopper. I thought you might be another officer or something.", Responses = {
-				[2] = "I actually want to help with what's going on."
-			}},
-			[4] = {Index = 2, Type = "Next", Speech = "Is that so? Well, I would love it if you helped, but it seems that everyone is incapacitated at the moment."},
-			[5] = {Index = 2, Type = "Respond", Speech = "How about you go sit in that corner and let your head rest?", Responses = {
-				[3] = "My head doesn't hurt, though. I don't think I need to."
-			}},
-			[6] = {Index = 3, Type = "Next", Speech = "Wait... really? You feel fine??"},
-			[7] = {Index = 3, Type = "Next", Speech = "Well in that case, I think I could use your help. Some others offered, but they could barely move without clutching their head and moaning."},
-			[8] = {Index = 3, Type = "Next", Speech = "Since you feel alright, I'll tell you want I was thinking."},
-			[9] = {Index = 3, Type = "Next", Speech = "There's an armory in the mall somewhere... I never really memorized it's location. I could swear it's just been gone a couple times."},
-			[10] = {Index = 3, Type = "Next", Speech = "Needless to say, I think we ought to head there and pick up some sort of weapon."},
-			[11] = {Index = 3, Type = "Next", Speech = "Then, once we have that, we can take out that beast. Got it?"},
-			[12] = {Index = 3, Type = "Next", Speech = "Great, let's go. Be careful... that thing can hear you pretty well."},
-			[13] = {Index = 3, Type = "Close"}
+			["NPCToFind"] = {
+				[1] = {Type = "Respond", Speech = "Darn thing, infiltrating into the facility and cutting of comms... work, please! *punches his radio*", Responses = {
+					[1] = "Uh... excuse me?"
+				}},
+				[2] = {Index = 1, Type = "Next", Speech = "Eh? Who's that?"},
+				[3] = {Index = 1, Type = "Respond", Speech = "Oh, it's just a random shopper. I thought you might be another officer or something.", Responses = {
+					[2] = "I actually want to help with what's going on."
+				}},
+				[4] = {Index = 2, Type = "Next", Speech = "Is that so? Well, I would love it if you helped, but it seems that everyone is incapacitated at the moment."},
+				[5] = {Index = 2, Type = "Respond", Speech = "How about you go sit in that corner and let your head rest?", Responses = {
+					[3] = "My head doesn't hurt, though. I don't think I need to."
+				}},
+				[6] = {Index = 3, Type = "Next", Speech = "Wait... really? You feel fine??"},
+				[7] = {Index = 3, Type = "Next", Speech = "Well in that case, I think I could use your help. Some others offered, but they could barely move without clutching their head and moaning."},
+				[8] = {Index = 3, Type = "Next", Speech = "Since you feel alright, I'll tell you want I was thinking."},
+				[9] = {Index = 3, Type = "Next", Speech = "There's an armory in the mall somewhere... I never really memorized it's location. I could swear it's just been gone a couple times."},
+				[10] = {Index = 3, Type = "Next", Speech = "Needless to say, I think we ought to head there and pick up some sort of weapon."},
+				[11] = {Index = 3, Type = "Next", Speech = "Then, once we have that, we can take out that beast. Got it?"},
+				[12] = {Index = 3, Type = "Next", Speech = "Great, let's go. Be careful... that thing can hear you pretty well."},
+				[13] = {Index = 3, Type = "Close"}
+			}
 		},
 		[5] = {
 			[1] = {Type = "Next", Speech = "Remember, we're heading to the armory to pick up a weapon. Let's keep it going."},
