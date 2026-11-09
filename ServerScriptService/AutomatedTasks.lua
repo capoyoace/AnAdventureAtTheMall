@@ -91,3 +91,35 @@ end
 for i, v in pairs(game:GetService("CollectionService"):GetTagged("Shopkeeper")) do
 	v.Torso.ProximityPrompt.RequiresLineOfSight = false
 end
+
+
+local TweenService = game:GetService("TweenService") --this was supposed to do something cool until it didn't :(
+
+local effect = workspace.FunnyEffect
+
+local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Linear, Enum.EasingDirection.Out)
+local tweenInfo2 = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut, 0, true)
+
+local shouldContinue = true
+
+local function speen()
+	local here = {CFrame = effect.CFrame * CFrame.fromEulerAnglesYXZ(math.rad(120), 0, 0)}
+	local otherHere = {CFrame = effect.CFrame * CFrame.fromEulerAnglesYXZ(0, 0, math.rad(30))}
+	
+	local tween1 = TweenService:Create(effect, tweenInfo, here)
+	local tween2 = TweenService:Create(effect, tweenInfo2, otherHere)
+	
+	--tween1:Play()
+	tween2:Play()
+	
+	tween2.Completed:Once(function()
+		if shouldContinue == true then
+			print("Spinning")
+			speen()
+		end
+	end)
+end
+
+speen()
+wait(10)
+shouldContinue = false
