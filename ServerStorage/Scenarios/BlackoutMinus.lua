@@ -9,6 +9,7 @@ local Players = game:GetService("Players")
 local ObjectiveHandler = require(ServerStorage.Tasks.ObjectiveHandler)
 
 local CutsceneManager = ServerStorage.Events.CutsceneManager
+local KillDialogue = ServerStorage.Events.KillDialogue
 
 BlackoutMinus.ObjectivesList = { --List of scenario objectives
 	[1] = {Type = "AskAround", DisplayInfo = "Figure out what's going on. Asking around will help.", AskType = "KnowledgeBased"},
@@ -182,6 +183,7 @@ end
 
 BlackoutMinus.Trigger = function(Mall) --makes lights turn out and doors slam and also centers players into the middle of the mall
 	CutsceneManager:Fire({Camera = script.Cameras.BlackoutPerspective.CFrame})
+	KillDialogue:Fire() --kills all dialogue
 	
 	for _, player in Players:GetPlayers() do
 		player.Character:PivotTo(CFrame.new(-97.9, 4.1, 164.6))
