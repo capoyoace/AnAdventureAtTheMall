@@ -48,6 +48,12 @@ Dialogue.RepeatedDialogue = {
 			[2] = {Type = "Next", Speech = "Regardless, feel free to recollect yourself in here... it can't get us for some reason. Maybe I'm too intimidating."},
 			[3] = {Type = "Close"}
 		},
+		["Armorer"] = {
+			[1] = {Type = "Next", Speech = "You'd better go and take that thing out."},
+			[2] = {Type = "Next", Speech = "I gave you the big old weapon that will work. What are you waiting for??"},
+			[3] = {Type = "Next", Speech = "Don't make me regret giving it to you."},
+			[4] = {Type = "Close"}
+		},
 		["Apothecary"] = {
 			[1] = {Type = "Next", Speech = "Eeehehehehehe!!! Looks like someone let this big fella loose!!"},
 			[2] = {Type = "Next", Speech = "Of course, I know how to take it out and save everyone too..."},
@@ -140,15 +146,66 @@ Dialogue.MunsterMinus =  {
 				[7] = {Index = 2, Type = "Close"}
 			}
 		},
-		[4] = {
-			["Required"] = {
-				[1] = {Type = "Next", Speech = "You should probably head over there soon. Be careful."},
-				[2] = {Type = "Close"}
-			}
-		}
+		[4] = Dialogue.RepeatedDialogue.MunsterMinus.Keeper,
+		[5] = Dialogue.RepeatedDialogue.MunsterMinus.Keeper,
+		[6] = Dialogue.RepeatedDialogue.MunsterMinus.Keeper,
+		[7] = Dialogue.RepeatedDialogue.MunsterMinus.Keeper,
+		[8] = Dialogue.RepeatedDialogue.MunsterMinus.Keeper
 	},
 	["Armorer"] = {
-		[1] = {}
+		[6] = {
+			[1] = {Type = "Respond", Speech = "That thing's dangerous. If you're gonna wander off again, you'll need a weapon.", Responses = {
+				[1] = "Actually, that's what we were just coming to find."
+			}},
+			[2] = {Index = 1, Type = "Next", Speech = "Glad to see you have common sense."},
+			[3] = {Index = 1, Type = "Respond", Speech = "Unfortunately, I'm still gonna have to see some registration.", Responses = {
+				[2] = "Uh... my friend here is a security guard. Isn't that enough registration?",
+				[3] = "Are you serious???? We're in a life or death situation here!!!",
+				[4] = "Do you want this monster dead or not?? We're here to take it out."
+			}},
+			[4] = {Index = 2, Type = "Next", Speech = "...yes, that is. Sorry, I should've thought that through."},
+			[5] = {Index = 2, Type = "Next", Speech = "Here, take this key. It unlocks the back door, and I've got a weapon that should be able to take care of that thing in there."},
+			[6] = {Index = 2, Type = "Next", Speech = "Good luck. Swing hard. Swing strong. Swing to kill."},
+			[7] = {Index = 2, Type = "Close"},
+			[8] = {Index = 3, Type = "Respond", Speech = "That is true. Unfortunately, it's shop policy.", Responses = {
+				[5] = "Forget shop policy!! I want self defense!! I ain't gonna hurt anybody but that monster!!!",
+				[6] = "Well, my friend here is a security guard. That should be good enough, eh?"
+			}},
+			[9] = {Index = 5, Type = "Next", Speech = "Are you sure you won't hurt yourself?..."},
+			[10] = {Index = 5, Type = "Next", Speech = "Ah, whatever. This is a dire situation, and you should be armed."},
+			[11] = {Index = 5, Type = "Next", Speech = "Take this key and grab the weapon in the back. It should be strong enough to take that thing out."},
+			[12] = {Index = 5, Type = "Next", Speech = "Good luck, and make sure you don't hurt yourself."},
+			[13] = {Index = 5, Type = "Close"},
+			[14] = {Index = 6, Type = "Next", Speech = "...true. I should've seen that."},
+			[15] = {Index = 6, Type = "Next", Speech = "Well, here's the key to the back. I've got a special weapon in there... use it."},
+			[16] = {Index = 6, Type = "Next", Speech = "Good luck. Swing hard. Swing strong. Swing to kill."},
+			[17] = {Index = 6, Type = "Close"},
+			[18] = {Index = 4, Type = "Respond", Speech = "I do, but I really need some registration. I need to see if you're fit to kill it.", Responses = {
+				[7] = "I'm fit enough. My head isn't aching. I think I'm qualified enough.",
+				[8] = "Talk to my friend then. He's a security guard. Isn't that convincing enough?"
+			}},
+			[19] = {Index = 7, Type = "Next", Speech = "Your head feels fine?? How???"},
+			[20] = {Index = 7, Type = "Next", Speech = "Well, that's evidence enough for me. Take this key and grab the weapon in the back."},
+			[21] = {Index = 7, Type = "Next", Speech = "I'd grab it for you myself, but I fear I'll collapse. MY head is in a ton of pain."},
+			[22] = {Index = 7, Type = "Next", Speech = "Kill it quick. The sooner it's gone, the better."},
+			[23] = {Index = 7, Type = "Close"},
+			[24] = {Index = 8, Type = "Next", Speech = "...right. That is."},
+			[25] = {Index = 8, Type = "Next", Speech = "Well, in that case, here's the keys to the back. I've got something... special in there that should aid you."},
+			[27] = {Index = 8, Type = "Next", Speech = "Good luck and be careful. You can't die in the process of killing it or we're screwed."},
+			[28] = {Index = 8, Type = "Close"}
+		},
+		[7] = Dialogue.RepeatedDialogue.MunsterMinus.Armorer,
+		[8] = Dialogue.RepeatedDialogue.MunsterMinus.Armorer
+	},
+	["Apothecary"] = {
+		[1] = Dialogue.RepeatedDialogue.MunsterMinus.Apothecary,
+		[2] = Dialogue.RepeatedDialogue.MunsterMinus.Apothecary,
+		[3] = Dialogue.RepeatedDialogue.MunsterMinus.Apothecary,
+		[4] = Dialogue.RepeatedDialogue.MunsterMinus.Apothecary,
+		[5] = Dialogue.RepeatedDialogue.MunsterMinus.Apothecary,
+		[6] = Dialogue.RepeatedDialogue.MunsterMinus.Apothecary,
+		[7] = Dialogue.RepeatedDialogue.MunsterMinus.Apothecary,
+		[8] = Dialogue.RepeatedDialogue.MunsterMinus.Apothecary
 	}
 }
 
