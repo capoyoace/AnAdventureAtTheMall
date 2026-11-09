@@ -120,14 +120,15 @@ local function ForceShops(RequiredShopList) --if the scenario requires some shop
 		
 		if not found then --checks whether or not the shop actually exists
 			local RandomShopToDestroy = SpawnedShops[math.random(1, #SpawnedShops)] --grabs random spawned shop
-			if not table.find(RequiredShopList, v) then --makes sure the shop chosen isn't a required one
+			if table.find(RequiredShopList, v) == nil then --makes sure the shop chosen isn't a required one
 				RandomShopToDestroy = TheMall.Shops:FindFirstChild(RandomShopToDestroy.Name)
 				doThis(RandomShopToDestroy, i, v)
 				print("replaced shop with", v, "successfully.")
 			else
 				while true do --chooses a shop that isn't required (if necessary)
 					RandomShopToDestroy = SpawnedShops[math.random(1, #SpawnedShops)]
-					if not table.find(RequiredShopList, v) then
+					print(RandomShopToDestroy.Name)
+					if table.find(RequiredShopList, v) == nil then
 						RandomShopToDestroy = TheMall.Shops:FindFirstChild(RandomShopToDestroy.Name)
 						doThis(RandomShopToDestroy, i, v)
 						break
@@ -281,7 +282,9 @@ for i, v in pairs(CollectionService:GetTagged("LockedDoor")) do --handles locked
 			sound.Parent = v
 			v.CanCollide = false
 			v.Transparency = 1
-			v.SurfaceGui.Enabled = false
+			if v:FindFirstChildOfClass("SurfaceGui") then
+				v.SurfaceGui.Enabled = false
+			end
 			sound:Play()
 			sound.Ended:Wait()
 			v:Destroy()
