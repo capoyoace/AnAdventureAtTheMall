@@ -170,7 +170,7 @@ MunsterMinus.Trigger = function(Mall)
 	MunsterMinus.ObjectivesList[3].loc = randomLocation.Parent.Name --updates the objective list based on this location and adds the security guard into the fifth objective
 	MunsterMinus.ObjectivesList[4].loc = randomLocation.Parent.Name 
 	MunsterMinus.ObjectivesList[5].Followers[1] = securityGuard
-	MunsterMinus.ObjectivesList[6].NPC[1] = Mall.Shops.Armory.Sirod
+	MunsterMinus.ObjectivesList[6].NPC[1] = Mall.Shops:FindFirstChild("Armory").Sirod
 	MunsterMinus.ObjectivesList[7].Enemy = NewMunster	
 	
 	securityGuard:PivotTo(randomLocation.CFrame) --slaps the security guard where he belongs
@@ -204,7 +204,7 @@ MunsterMinus.Trigger = function(Mall)
 	
 	CutsceneManager:Fire({Camera = script.Cameras.MunsterPerspective.CFrame}) --makes the camera look at the stairs and the munster walks, faces the camera, and makes a funny noise
 	
-	NPCHandler.MoveToPoint(NewMunster, Vector3.new(101.1, 1.5, 163.9))
+	NPCHandler.MoveToPoint(NewMunster, Vector3.new(104.084, 1, 121.131))
 	
 	NewMunster.Humanoid.RootPart.CFrame = CFrame.new(NewMunster.Humanoid.RootPart.Position, Vector3.new(script.Cameras.MunsterPerspective.Position.X, NewMunster.Humanoid.RootPart.Position.Y, script.Cameras.MunsterPerspective.Position.Z))
 	
