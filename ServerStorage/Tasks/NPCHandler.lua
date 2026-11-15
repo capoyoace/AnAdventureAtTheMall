@@ -271,6 +271,12 @@ NPCHandler.Talk = function(player : Player, NPC, bondLevel) --Handles talking to
 		connection:Disconnect()
 		connection2:Disconnect()
 		DialogueUI.Enabled = false
+		for i, v in pairs(DialogueUI.Responses:GetChildren()) do
+			if v:IsA("TextButton") then
+				v:Destroy()
+			end
+		end
+		DialogueUI.NextButton.Visible = true
 		
 		wait(2)
 		pcall(function()
@@ -518,6 +524,7 @@ NPCHandler.MunsterAI = function(Munster : Model) --handles the munster ai
 	local function getBonk(player)
 		bonked = true
 		Munster.Humanoid:MoveTo(Munster.Humanoid.RootPart.Position)
+		Munster.HumanoidRootPart.Anchored = true
 		task.wait(math.random(1, 4))
 		bonked = false
 		invulnerable = true
@@ -532,6 +539,7 @@ NPCHandler.MunsterAI = function(Munster : Model) --handles the munster ai
 			invulnerable = false
 		end)
 		
+		Munster.HumanoidRootPart.Anchored = false
 		pursuePlayer(player, player.Character)
 	end
 	
@@ -575,18 +583,16 @@ NPCHandler.MunsterAI = function(Munster : Model) --handles the munster ai
 		end
 	end
 	
-	for i, v in pairs(Munster:GetChildren()) do --if a player or NPC bumps into the munster, instantaneously kills them lol
-		if v:IsA("BasePart") then
-			v.Touched:Connect(function(hit)
-				local player = Players:GetPlayerFromCharacter(hit.Parent)
-				if player and not player:GetAttribute("Hiding") and player:GetAttribute("Invulnerable") == false then
-					player.Character.Humanoid.Health = 0
-				elseif hit.Parent:GetAttribute("NPCType") == "SecurityGuard" and not hit.Parent:GetAttribute("Hiding") then
-					hit.Parent.Humanoid.Health = 0
-				end
-			end)
+	
+	Munster.Hitbox.Touched:Connect(function(hit) --if a player or NPC bumps into the munster, instantaneously kills them lol
+		local player = Players:GetPlayerFromCharacter(hit.Parent)
+		if player and not player:GetAttribute("Hiding") and player:GetAttribute("Invulnerable") == false then
+			player.Character.Humanoid.Health = 0
+		elseif hit.Parent:GetAttribute("NPCType") == "SecurityGuard" and not hit.Parent:GetAttribute("Hiding") then
+			hit.Parent.Humanoid.Health = 0
 		end
-	end
+	end)
+
 	
 	CustomizableEvent.Event:Connect(function(content, player)
 		if type(content) == "string" and content == "HitMunster" and not invulnerable then
@@ -630,7 +636,35 @@ NPCHandler.FollowPlayer = function(follwer, player) --handles NPCs following the
 	
 	local shouldStop = false
 	
-	local Path = PathfindingService:CreatePath({AgentRadius = 3, Costs = {DONTGOHERE = 20}}) --makes a path structure for pathfinding operations
+	local Path = PathfindingService:CreatePath({AgentRadius = 3.25, Costs = {DONTGOHERE = 20}}) --makes a path structure for pathfinding operations
+	
+	local function findClosest(points) --finds the closest of a few spots using pathfinding service instead of raw magnitude
+		local closestDistance = 1000000000 --ridiculously high number for funsies
+		local closestSpot
+		
+		for i, v in points do
+			local thisDist = 0
+			
+			Path:ComputeAsync(followerHumanoid.RootPart.Position, i.Position)
+			
+			if Path.Status ~= Enum.PathStatus.Success then --if he can't walk there just continues
+				continue
+			end
+			
+			local waypoints = Path:GetWaypoints()
+			
+			for j = 1, #waypoints - 1 do --gets total path distance
+				thisDist += (waypoints[j].Position - waypoints[j+1].Position).Magnitude
+			end
+			
+			if thisDist < closestDistance then --changes the closest spot based on this total distance
+				closestDistance = thisDist
+				closestSpot = i
+			end
+		end
+		
+		return closestSpot
+	end
 	
 	while wait(0.1) do --constant check of these things
 		if follwer:GetAttribute("InPursuit") == true then --handles when the NPC is being hunted
@@ -722,12 +756,13 @@ NPCHandler.FollowPlayer = function(follwer, player) --handles NPCs following the
 				if success then
 					for _, waypoint in Path:GetWaypoints() do
 						followerHumanoid:MoveTo(waypoint.Position)
-						followerHumanoid.MoveToFinished:Wait()
 						
 						difference = (playerHumanoid.RootPart.Position - followerHumanoid.RootPart.Position).Magnitude
-						if difference <= 7.5 then --if the NPC comes close to the player before finishing their path stops
+						if difference <= 7.5 or follwer:GetAttribute("InPursuit") == true then --if the NPC comes close to the player before finishing their path stops
 							break
 						end
+						
+						followerHumanoid.MoveToFinished:Wait()
 					end
 				else
 					warn(Error)
@@ -740,18 +775,30 @@ NPCHandler.FollowPlayer = function(follwer, player) --handles NPCs following the
 				end
 			end
 		elseif not follwer:GetAttribute("Hiding") then --handles hiding
+			local potentialHidingSpots = {}
+			local rawDistances = {}
 			local closestHidingSpot
-			local distance = 10000000
-			for i, v in pairs(workspace.Mall.Scenario.SpecialStuff:GetChildren()) do --finds closest available hiding spot
+			for i, v in pairs(workspace.Mall.Scenario.SpecialStuff:GetChildren()) do --gets all hiding spots and puts them in a table
 				if v.Name == "HidingSpot" and v:GetAttribute("Occupied") == false then
 					print(v:GetAttribute("Occupied"))
 					local thisDist = (v.Position - followerHumanoid.RootPart.Position).Magnitude
-					if thisDist < distance then
-						distance = thisDist
-						closestHidingSpot = v
-					end
+					potentialHidingSpots[v] = thisDist
+					table.insert(rawDistances, thisDist)
 				end
 			end
+			
+			table.sort(rawDistances, function(a, b) return a > b end) --finds the closest four hiding spots and deletes the rest
+			for i = 5, #rawDistances do
+				table.remove(rawDistances, i)
+			end
+			
+			for i, v in potentialHidingSpots do --deletes ineligible hiding spots
+				if not table.find(rawDistances, v) then
+					potentialHidingSpots[i] = nil
+				end
+			end
+			
+			closestHidingSpot = findClosest(potentialHidingSpots) --grabs the closest of them with findClosest function (check it out at the beginning of the Follower logic)
 			
 			local success, Error = pcall(function()
 				Path:ComputeAsync(followerHumanoid.RootPart.Position, closestHidingSpot.Position)
@@ -762,7 +809,7 @@ NPCHandler.FollowPlayer = function(follwer, player) --handles NPCs following the
 					followerHumanoid:MoveTo(waypoint.Position)
 					followerHumanoid.MoveToFinished:Wait()
 					
-					if not plrReference:GetAttribute("Hiding") then --if the player suddenly comes out of hiding the NPC stops
+					if not plrReference:GetAttribute("Hiding") or follwer:GetAttribute("InPursuit") == true then --if the player suddenly comes out of hiding the NPC stops
 						break
 					end
 				end
