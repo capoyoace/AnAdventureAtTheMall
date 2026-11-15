@@ -1,6 +1,7 @@
 -- @ScriptType: Script
 local Players = game:GetService("Players")
 local ServerStorage = game:GetService("ServerStorage")
+local Debris = game:GetService("Debris")
 
 local hitMunster = ServerStorage.Tasks.NPCHandler.CustomizableEvent
 
@@ -25,6 +26,12 @@ tool.Equipped:Connect(function()
 	swingTrack = character.Humanoid.Animator:LoadAnimation(script.Swang) :: AnimationTrack
 end)
 
+local hitbox = Instance.new("Part")
+hitbox.Size = Vector3.new(4, 5, 10)
+hitbox.CanCollide = false
+hitbox.Transparency = 0.9
+hitbox.Massless = true
+
 tool.Activated:Connect(function()
 	if not debounce then
 		debounce = true
@@ -35,7 +42,15 @@ tool.Activated:Connect(function()
 			swingSound:Play()
 		end)
 		
-		tool.Handle.Hitbox.Touched:Connect(function(touchThing)
+		local newBox = hitbox:Clone()
+		local newWeld = Instance.new("WeldConstraint", newBox)
+		newWeld.Part0 = tool.Handle
+		newBox.CFrame = character.PrimaryPart.CFrame * CFrame.new(0, 0, -6)
+		newWeld.Part1 = newBox
+		newBox.Parent = tool
+		Debris:AddItem(newBox, 0.5)
+		
+		newBox.Touched:Connect(function(touchThing)
 			if touchThing.Parent ~= character and isSwingin and not soundDebounce then
 				whackSound:Play()
 				soundDebounce = true
