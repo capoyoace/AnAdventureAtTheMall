@@ -120,7 +120,7 @@ local function ForceShops(RequiredShopList) --if the scenario requires some shop
 		
 		if not found then --checks whether or not the shop actually exists
 			local RandomShopToDestroy = SpawnedShops[math.random(1, #SpawnedShops)] --grabs random spawned shop
-			if table.find(RequiredShopList, v) == nil then --makes sure the shop chosen isn't a required one
+			if not table.find(RequiredShopList, RandomShopToDestroy.Name) then --makes sure the shop chosen isn't a required one
 				RandomShopToDestroy = TheMall.Shops:FindFirstChild(RandomShopToDestroy.Name)
 				doThis(RandomShopToDestroy, i, v)
 				print("replaced shop with", v, "successfully.")
@@ -128,13 +128,13 @@ local function ForceShops(RequiredShopList) --if the scenario requires some shop
 				while true do --chooses a shop that isn't required (if necessary)
 					RandomShopToDestroy = SpawnedShops[math.random(1, #SpawnedShops)]
 					print(RandomShopToDestroy.Name)
-					if table.find(RequiredShopList, v) == nil then
+					if not table.find(RequiredShopList, RandomShopToDestroy.Name) then
 						RandomShopToDestroy = TheMall.Shops:FindFirstChild(RandomShopToDestroy.Name)
 						doThis(RandomShopToDestroy, i, v)
 						break
 					else
 						print("shucky darns")
-						wait(0.1)
+						task.wait(0.1)
 					end
 				end
 			end
